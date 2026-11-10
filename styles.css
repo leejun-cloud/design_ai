@@ -1,0 +1,109 @@
+/* styles.css — 디자인 AI 스튜디오 자체 UI */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  background: #f1f5f9; color: #1f2937; min-height: 100vh;
+}
+
+.topbar { background: #0f172a; color: #fff; padding: 28px 24px; text-align: center; }
+.topbar h1 { font-size: 26px; }
+.topbar p { opacity: .7; margin-top: 6px; font-size: 14px; }
+
+/* 단계 표시줄 */
+.steps { display: flex; justify-content: center; gap: 8px; padding: 16px; background: #fff;
+  border-bottom: 1px solid #e2e8f0; flex-wrap: wrap; }
+.step { border: none; background: #f1f5f9; color: #64748b; padding: 10px 18px;
+  border-radius: 999px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
+.step.active { background: #2563eb; color: #fff; }
+
+main { max-width: 1060px; margin: 0 auto; padding: 32px 20px 80px; }
+.panel h2 { font-size: 22px; margin-bottom: 20px; }
+.hidden { display: none !important; }
+.hint { color: #64748b; margin: -10px 0 18px; }
+.panel-head { display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+.panel-head h2 { margin-bottom: 0; }
+.part-label { color: #2563eb; font-size: 16px; }
+
+/* 버튼 */
+.btn { border: 1px solid #cbd5e1; background: #fff; padding: 10px 18px; border-radius: 10px;
+  font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; color: #1f2937; }
+.btn:hover { background: #f8fafc; }
+.btn.primary { background: #2563eb; color: #fff; border-color: #2563eb; }
+.btn.primary:hover { background: #1d4ed8; }
+.btn.ghost { background: transparent; border-color: transparent; color: #2563eb; }
+.btn.big { padding: 14px 34px; font-size: 16px; }
+
+/* STEP 1 종류 카드 */
+.part-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+.part-card { background: #fff; border: 2px solid #e2e8f0; border-radius: 18px; padding: 36px 20px;
+  cursor: pointer; text-align: center; font-family: inherit; transition: .15s; }
+.part-card:hover { border-color: #2563eb; transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, .12); }
+.part-icon { font-size: 44px; display: block; margin-bottom: 14px; }
+.part-card strong { font-size: 18px; display: block; margin-bottom: 8px; }
+.part-card small { color: #64748b; }
+
+/* STEP 2 디자인 카드 */
+.design-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 18px; }
+.design-card { background: #fff; border: 2px solid #e2e8f0; border-radius: 14px; overflow: hidden;
+  cursor: pointer; transition: .15s; }
+.design-card:hover { border-color: #2563eb; transform: translateY(-2px); }
+.mini { height: 140px; padding: 18px; position: relative; overflow: hidden; }
+.mini-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 6px; }
+.mini-title { font-size: 24px; font-weight: 800; margin-bottom: 12px; }
+.mini-line { height: 7px; border-radius: 4px; margin: 7px 0; width: 80%; }
+.mini-line.short { width: 50%; }
+.design-meta { padding: 12px 14px; display: flex; align-items: center; gap: 8px;
+  border-top: 1px solid #f1f5f9; flex-wrap: wrap; }
+.design-meta strong { font-size: 15px; }
+.design-meta small { color: #94a3b8; font-size: 12px; width: 100%; }
+.tag { margin-left: auto; font-size: 11px; background: #f1f5f9; color: #64748b;
+  padding: 2px 8px; border-radius: 999px; }
+.del { margin-left: auto; border: none; background: none; cursor: pointer; font-size: 15px; }
+
+/* 등록 폼 / 내용 입력 폼 */
+.register-box { margin-top: 28px; background: #fff; border: 2px dashed #cbd5e1;
+  border-radius: 16px; padding: 26px; }
+.register-box h3 { margin-bottom: 18px; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+.form-grid label { display: flex; flex-direction: column; gap: 6px; font-size: 14px;
+  font-weight: 600; color: #475569; }
+.form-grid input[type="text"], .form-grid select, .form-grid textarea {
+  border: 1px solid #cbd5e1; border-radius: 10px; padding: 11px 13px; font-size: 15px;
+  font-family: inherit; background: #fff; }
+.form-grid input[type="color"] { width: 100%; height: 44px; border: 1px solid #cbd5e1;
+  border-radius: 10px; cursor: pointer; background: #fff; padding: 4px; }
+.form-grid .full { grid-column: 1 / -1; }
+.content-form { background: #fff; border-radius: 16px; padding: 26px; border: 1px solid #e2e8f0; }
+.form-actions { margin-top: 22px; display: flex; gap: 12px; flex-wrap: wrap; }
+
+.design-meta .ref { width: 100%; font-size: 12px; color: #64748b; font-style: normal;
+  line-height: 1.5; margin-top: 4px; }
+.card-actions { display: flex; gap: 8px; padding: 0 14px 14px; }
+.btn.sm { padding: 8px 10px; font-size: 13px; flex: 1; }
+
+/* 디자인 가이드 모달 */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, .55);
+  display: flex; align-items: center; justify-content: center; z-index: 50; padding: 20px; }
+.modal { background: #fff; border-radius: 18px; padding: 28px; max-width: 620px; width: 100%;
+  max-height: 88vh; overflow-y: auto; }
+.modal h3 { margin-bottom: 8px; }
+.guide-ref { font-size: 13px; color: #2563eb; background: #eff6ff; border-radius: 8px;
+  padding: 10px 12px; margin: 10px 0; line-height: 1.6; }
+.guide-text { font-size: 15px; line-height: 1.8; margin: 14px 0; color: #334155; }
+.swatches { display: flex; gap: 14px; flex-wrap: wrap; margin: 14px 0; }
+.swatch { text-align: center; }
+.swatch span { display: block; width: 52px; height: 52px; border-radius: 12px;
+  border: 1px solid #e2e8f0; margin: 0 auto 6px; }
+.swatch .fontchip { display: flex; align-items: center; justify-content: center;
+  font-size: 22px; font-weight: 800; background: #f1f5f9; }
+.swatch small { font-size: 11px; color: #64748b; line-height: 1.5; }
+.guide-json { background: #0f172a; color: #a5f3fc; font-size: 12px; padding: 14px;
+  border-radius: 10px; overflow-x: auto; margin: 12px 0; max-height: 180px; overflow-y: auto; }
+
+/* STEP 4 결과 */
+.result-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.slide-nav { display: flex; align-items: center; gap: 14px; justify-content: center; margin-bottom: 14px; }
+#resultFrame iframe { width: 100%; height: 72vh; border: 1px solid #cbd5e1;
+  border-radius: 14px; background: #fff; }

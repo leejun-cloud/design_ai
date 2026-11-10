@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>디자인 AI 스튜디오</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+  <h1>🎨 디자인 AI 스튜디오</h1>
+  <p>표준디자인을 고르고 내용만 넣으면, 같은 스타일의 결과물이 바로 나옵니다</p>
+</header>
+
+<!-- 단계 표시줄 -->
+<nav class="steps" id="stepBar">
+  <button class="step active" data-step="1">1. 종류 선택</button>
+  <button class="step" data-step="2">2. 표준디자인 선택</button>
+  <button class="step" data-step="3">3. 내용 입력</button>
+  <button class="step" data-step="4">4. 결과 확인</button>
+</nav>
+
+<main>
+  <!-- STEP 1: 종류 선택 -->
+  <section class="panel" id="panel1">
+    <h2>어떤 것을 만들까요?</h2>
+    <div class="part-grid">
+      <button class="part-card" data-part="ppt">
+        <span class="part-icon">📊</span>
+        <strong>PPT (발표자료)</strong>
+        <small>표지·개요·상세·마무리 4장 슬라이드</small>
+      </button>
+      <button class="part-card" data-part="poster">
+        <span class="part-icon">🖼️</span>
+        <strong>포스터</strong>
+        <small>행사 홍보용 세로형 포스터 1장</small>
+      </button>
+      <button class="part-card" data-part="landing">
+        <span class="part-icon">🌐</span>
+        <strong>랜딩페이지</strong>
+        <small>바로 배포 가능한 웹페이지 1개</small>
+      </button>
+    </div>
+  </section>
+
+  <!-- STEP 2: 표준디자인 선택 -->
+  <section class="panel hidden" id="panel2">
+    <div class="panel-head">
+      <h2>표준디자인을 고르세요 <span class="part-label" id="partLabel"></span></h2>
+      <button class="btn ghost" id="btnOpenRegister">＋ 새 표준디자인 등록</button>
+    </div>
+    <div class="design-grid" id="designGrid"></div>
+
+    <!-- 표준디자인 등록 폼 -->
+    <div class="register-box hidden" id="registerBox">
+      <h3>새 표준디자인 등록</h3>
+      <div class="form-grid">
+        <label>디자인 이름 <input type="text" id="regName" placeholder="예: 우리교회 공식 스타일"></label>
+        <label>레이아웃 틀 <select id="regLayout"></select></label>
+        <label>주 색상 <input type="color" id="regPrimary" value="#2563eb"></label>
+        <label>보조 색상 <input type="color" id="regSecondary" value="#f59e0b"></label>
+        <label>배경 색상 <input type="color" id="regBg" value="#ffffff"></label>
+        <label>글자 색상 <input type="color" id="regText" value="#1f2937"></label>
+        <label>글꼴 분위기
+          <select id="regFont">
+            <option value="sans">고딕 (깔끔·모던)</option>
+            <option value="serif">명조 (클래식·감성)</option>
+          </select>
+        </label>
+      </div>
+      <div class="form-actions">
+        <button class="btn primary" id="btnSaveDesign">등록하기</button>
+        <button class="btn ghost" id="btnCancelRegister">취소</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 3: 내용 입력 -->
+  <section class="panel hidden" id="panel3">
+    <h2>내용을 입력하세요</h2>
+    <p class="hint">선택한 표준디자인: <strong id="chosenDesignName"></strong></p>
+    <div class="form-grid content-form">
+      <label>제목 * <input type="text" id="cTitle" placeholder="예: 2026 가을 음악회"></label>
+      <label>부제목 <input type="text" id="cSubtitle" placeholder="예: 함께 만드는 하모니"></label>
+      <label>날짜 <input type="text" id="cDate" placeholder="예: 2026년 11월 21일 (토) 오후 7시"></label>
+      <label>장소 <input type="text" id="cPlace" placeholder="예: 소망홀 대강당"></label>
+      <label class="full">설명 <textarea id="cDesc" rows="4" placeholder="행사/발표 내용을 자유롭게 적어주세요. 문단은 줄바꿈으로 나뉩니다."></textarea></label>
+      <label>주최/문의 <input type="text" id="cHost" placeholder="예: 문화기획팀 (02-1234-5678)"></label>
+      <label id="ctaWrap" class="hidden">버튼 문구 (랜딩용) <input type="text" id="cCta" placeholder="예: 지금 신청하기"></label>
+    </div>
+    <div class="form-actions">
+      <button class="btn primary big" id="btnGenerate">✨ 생성하기</button>
+      <button class="btn ghost" id="btnBack2">← 디자인 다시 선택</button>
+    </div>
+  </section>
+
+  <!-- STEP 4: 결과 -->
+  <section class="panel hidden" id="panel4">
+    <div class="panel-head">
+      <h2>완성! 🎉</h2>
+      <div class="result-actions">
+        <button class="btn primary" id="btnDownload">⬇ HTML 파일 다운로드</button>
+        <button class="btn" id="btnPrint">🖨 인쇄 / PDF 저장</button>
+        <button class="btn ghost" id="btnRestart">처음부터 다시</button>
+      </div>
+    </div>
+    <div class="slide-nav hidden" id="slideNav">
+      <button class="btn" id="prevSlide">◀ 이전 장</button>
+      <span id="slideIndicator">1 / 4</span>
+      <button class="btn" id="nextSlide">다음 장 ▶</button>
+    </div>
+    <div id="resultFrame"></div>
+  </section>
+</main>
+
+<!-- 디자인 가이드 모달 -->
+<div class="modal-backdrop hidden" id="guideModal">
+  <div class="modal">
+    <h3 id="guideTitle">디자인 가이드</h3>
+    <p class="guide-ref" id="guideRef"></p>
+    <div class="swatches" id="guideSwatches"></div>
+    <p class="guide-text" id="guideText"></p>
+    <pre class="guide-json" id="guideJson"></pre>
+    <div class="form-actions">
+      <button class="btn primary" id="btnUseGuide">✏️ 이 디자인으로 바로 만들기</button>
+      <button class="btn" id="btnCloneGuide">🧬 가이드 복제해 새 디자인 등록</button>
+      <button class="btn" id="btnCopyJson">📋 JSON 복사</button>
+      <button class="btn ghost" id="btnCloseGuide">닫기</button>
+    </div>
+  </div>
+</div>
+
+<script src="templates.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
