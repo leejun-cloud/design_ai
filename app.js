@@ -13,8 +13,37 @@ function loadCustomDesigns() {
 function saveCustomDesigns(list) {
   localStorage.setItem(STORE_KEY, JSON.stringify(list));
 }
+const HIDE_KEY = 'designai_hidden_seeds_v1';
+function loadHiddenSeeds() {
+  try { return JSON.parse(localStorage.getItem(HIDE_KEY)) || []; }
+  catch { return []; }
+}
+function saveHiddenSeeds(list) { localStorage.setItem(HIDE_KEY, JSON.stringify(list)); }
+
 function allDesigns(part) {
-  return [...SEED_DESIGNS, ...loadCustomDesigns()].filter(d => d.part === part);
+  const hidden = loadHiddenSeeds();
+  return [...SEED_DESIGNS.filter(d => !hidden.includes(d.id)), ...loadCustomDesigns()]
+    .filter(d => d.part === part);
+}
+
+/* ---------- IndexedDB: 가져온 원소스 파일(.pptx) 보관 ---------- */
+function withIdb(cb) {
+  const req = indexedDB.open('designai_sources', 1);
+  req.onupgradeneeded = () => req.result.createObjectStore('files');
+  req.onsuccess = () => cb(req.result);
+  req.onerror = () => alert('브라우저 저장소(IndexedDB)를 열 수 없습니다.');
+}
+function idbPut(key, blob) {
+  withIdb(db => db.transaction('files', 'readwrite').objectStore('files').put(blob, key));
+}
+function idbGet(key, cb) {
+  withIdb(db => {
+    const r = db.transaction('files').objectStore('files').get(key);
+    r.onsuccess = () => cb(r.result || null);
+  });
+}
+function idbDelete(key) {
+  withIdb(db => db.transaction('files', 'readwrite').objectStore('files').delete(key));
 }
 
 /* ---------- 단계 전환 ---------- */
@@ -62,20 +91,24 @@ function renderDesignGrid() {
   grid.innerHTML = allDesigns(state.part).map(d => {
     const isCustom = custom.some(cd => cd.id === d.id);
     const layoutName = (LAYOUTS[d.part].find(l => l.id === d.layout) || {}).name || d.layout;
+    const srcLabel = d.source ? (d.source.type === 'url' ? '🔗 링크에서 복제됨' : '📂 PPT에서 복제됨') : '';
     return `<div class="design-card" data-id="${d.id}">
       ${thumbHtml(d)}
       <div class="design-meta">
         <strong>${d.name}</strong>
-        ${isCustom ? `<button class="del" data-del="${d.id}" title="삭제">🗑</button>` : '<span class="tag">인기 샘플</span>'}
-        <small>${layoutName}</small>
+        <button class="del" data-del="${d.id}" title="${isCustom ? '삭제' : '목록에서 숨기기'}">🗑</button>
+        ${isCustom ? '' : '<span class="tag">인기 샘플</span>'}
+        <small>${layoutName}${srcLabel ? ' · ' + srcLabel : ''}</small>
         ${d.ref ? `<em class="ref">${d.ref}</em>` : ''}
       </div>
       <div class="card-actions">
         <button class="btn primary sm" data-use="${d.id}">✏️ 내용 입력해 만들기</button>
         <button class="btn sm" data-guide="${d.id}">📘 디자인 가이드</button>
+        ${d.source ? `<button class="btn sm" data-src="${d.id}">🔍 원소스</button>` : ''}
       </div>
     </div>`;
   }).join('');
+  document.getElementById('btnRestoreSeeds').classList.toggle('hidden', !loadHiddenSeeds().length);
 
   const pick = id => allDesigns(state.part).find(d => d.id === id);
   // 카드 아무 곳이나 클릭 → 실물 전체 미리보기 모달
@@ -87,14 +120,46 @@ function renderDesignGrid() {
   });
   grid.querySelectorAll('[data-use]').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); selectDesign(pick(btn.dataset.use)); }));
   grid.querySelectorAll('[data-guide]').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); openGuide(pick(btn.dataset.guide)); }));
+  grid.querySelectorAll('[data-src]').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); openSource(pick(btn.dataset.src)); }));
   grid.querySelectorAll('.del').forEach(btn => {
     btn.addEventListener('click', e => {
       e.stopPropagation();
-      if (!confirm('이 표준디자인을 삭제할까요?')) return;
-      saveCustomDesigns(loadCustomDesigns().filter(d => d.id !== btn.dataset.del));
+      const id = btn.dataset.del;
+      const isCustom = loadCustomDesigns().some(d => d.id === id);
+      if (isCustom) {
+        if (!confirm('이 표준디자인을 삭제할까요? (가져온 원소스 파일도 함께 삭제됩니다)')) return;
+        saveCustomDesigns(loadCustomDesigns().filter(d => d.id !== id));
+        idbDelete(id);
+      } else {
+        if (!confirm('기본 템플릿을 목록에서 숨길까요? (아래 "기본 템플릿 복원"으로 되살릴 수 있습니다)')) return;
+        saveHiddenSeeds([...loadHiddenSeeds(), id]);
+      }
       renderDesignGrid();
     });
   });
+}
+
+document.getElementById('btnRestoreSeeds').addEventListener('click', () => {
+  saveHiddenSeeds([]);
+  renderDesignGrid();
+});
+
+/* ---------- 원소스 열기 ---------- */
+function openSource(design) {
+  const src = design.source;
+  if (!src) return;
+  if (src.type === 'url') {
+    window.open(src.url, '_blank');
+  } else {
+    idbGet(design.id, blob => {
+      if (!blob) { alert('원소스 파일을 찾을 수 없습니다. (다른 브라우저/기기에서 등록했을 수 있어요)'); return; }
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = src.name || 'source.pptx';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+  }
 }
 
 function selectDesign(design) {
@@ -171,14 +236,136 @@ document.getElementById('btnCloneGuide').addEventListener('click', () => {
 /* ---------- 표준디자인 등록 ---------- */
 const registerBox = document.getElementById('registerBox');
 function hideRegisterBox() { registerBox.classList.add('hidden'); }
+let pendingSource = null;      // 분석 중인 원소스 { type:'file'|'url', name?/url? }
+let pendingSourceBlob = null;  // pptx 원본 Blob
+
+/* ---------- PPT·링크에서 디자인가이드 복제 ---------- */
+const importBox = document.getElementById('importBox');
+const impStatus = document.getElementById('impStatus');
+
+document.getElementById('btnOpenImport').addEventListener('click', () => {
+  importBox.classList.toggle('hidden');
+  impStatus.textContent = '';
+});
+document.getElementById('btnCancelImport').addEventListener('click', () => importBox.classList.add('hidden'));
+
+function isSerifFont(name) {
+  return /serif|myungjo|myeongjo|batang|바탕|명조|mincho|明朝|times|garamond|georgia/i.test(name || '');
+}
+
+/* 색 유틸: 채도·명도로 역할 배정 */
+function hexInfo(hex) {
+  const r = parseInt(hex.slice(0, 2), 16), g = parseInt(hex.slice(2, 4), 16), b = parseInt(hex.slice(4, 6), 16);
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  return { hex: '#' + hex.toLowerCase(), lum: (max + min) / 510, sat: max === 0 ? 0 : (max - min) / max };
+}
+
+/* .pptx 분석: 테마 XML에서 색상·글꼴 추출 */
+function analyzePptx(file, done) {
+  impStatus.textContent = '⏳ PPT 테마를 분석하는 중...';
+  JSZip.loadAsync(file).then(zip => {
+    const themeFile = Object.keys(zip.files).find(k => /ppt\/theme\/theme\d*\.xml/.test(k));
+    if (!themeFile) throw new Error('테마 파일이 없습니다');
+    return zip.file(themeFile).async('string');
+  }).then(xml => {
+    const pick = tag => {
+      const m = xml.match(new RegExp(`<a:${tag}>.*?(?:val|lastClr)="([0-9A-Fa-f]{6})"`, 's'));
+      return m ? '#' + m[1].toLowerCase() : null;
+    };
+    const fontM = xml.match(/<a:majorFont>\s*<a:latin[^>]*typeface="([^"]*)"/);
+    done({
+      primary: pick('accent1') || '#2563eb',
+      secondary: pick('accent2') || '#f59e0b',
+      bg: pick('lt1') || '#ffffff',
+      text: pick('dk1') || '#1f2937',
+      font: isSerifFont(fontM && fontM[1]) ? 'serif' : 'sans',
+      title: file.name.replace(/\.pptx$/i, ''),
+    });
+  }).catch(err => {
+    impStatus.textContent = '⚠️ PPT 분석 실패(' + err.message + ') — 색상을 직접 지정해 등록해주세요.';
+    done(null);
+  });
+}
+
+/* URL 분석: 페이지에서 색상 빈도·글꼴 분위기 추출 (CORS로 막히면 수동 입력) */
+function analyzeUrl(url, done) {
+  impStatus.textContent = '⏳ 링크 페이지를 분석하는 중...';
+  const tryFetch = u => fetch(u).then(r => { if (!r.ok) throw new Error(r.status); return r.text(); });
+  tryFetch(url)
+    .catch(() => tryFetch('https://corsproxy.io/?url=' + encodeURIComponent(url)))
+    .then(html => {
+      const counts = {};
+      for (const m of html.matchAll(/#([0-9a-fA-F]{6})\b/g)) {
+        const h = m[1].toLowerCase();
+        counts[h] = (counts[h] || 0) + 1;
+      }
+      const infos = Object.keys(counts).map(hexInfo)
+        .sort((a, b) => counts[b.hex.slice(1)] - counts[a.hex.slice(1)]);
+      const vivid = infos.filter(i => i.sat > 0.3 && i.lum > 0.15 && i.lum < 0.85);
+      const lights = infos.filter(i => i.lum > 0.9);
+      const darks = infos.filter(i => i.lum < 0.25);
+      const themeM = html.match(/name="theme-color"[^>]*content="(#[0-9a-fA-F]{6})"/);
+      const titleM = html.match(/<title[^>]*>([^<]{1,60})/);
+      done({
+        primary: (themeM && themeM[1]) || (vivid[0] && vivid[0].hex) || '#2563eb',
+        secondary: (vivid[1] && vivid[1].hex) || '#f59e0b',
+        bg: (lights[0] && lights[0].hex) || '#ffffff',
+        text: (darks[0] && darks[0].hex) || '#1f2937',
+        font: isSerifFont((html.match(/font-family:\s*([^;}]{0,80})/i) || [])[1]) ? 'serif' : 'sans',
+        title: titleM ? titleM[1].trim() : url.replace(/^https?:\/\//, '').split('/')[0],
+      });
+    })
+    .catch(() => {
+      impStatus.textContent = '⚠️ 페이지를 가져올 수 없었습니다(CORS 차단). 링크는 원소스로 저장되니, 색상은 그 페이지를 보며 직접 지정해주세요.';
+      done(null);
+    });
+}
+
+/* 분석 결과 → 등록 폼에 채워서 확인 후 저장 */
+function fillRegisterForm(result, source) {
+  pendingSource = source;
+  const sel = document.getElementById('regLayout');
+  sel.innerHTML = LAYOUTS[state.part].map(l => `<option value="${l.id}">${l.name}</option>`).join('');
+  document.getElementById('regName').value = (result && result.title ? result.title : '가져온 디자인').slice(0, 40);
+  if (result) {
+    document.getElementById('regPrimary').value = result.primary;
+    document.getElementById('regSecondary').value = result.secondary;
+    document.getElementById('regBg').value = result.bg;
+    document.getElementById('regText').value = result.text;
+    document.getElementById('regFont').value = result.font;
+    impStatus.textContent = '✅ 분석 완료! 아래 등록 폼에서 확인·수정 후 등록하세요.';
+  }
+  registerBox.classList.remove('hidden');
+  registerBox.scrollIntoView({ behavior: 'smooth' });
+}
+
+document.getElementById('btnAnalyze').addEventListener('click', () => {
+  const file = document.getElementById('impFile').files[0];
+  const url = document.getElementById('impUrl').value.trim();
+  pendingSourceBlob = null;
+  if (file) {
+    pendingSourceBlob = file;
+    analyzePptx(file, result => fillRegisterForm(result, { type: 'file', name: file.name }));
+  } else if (/^https?:\/\//.test(url)) {
+    analyzeUrl(url, result => fillRegisterForm(result, { type: 'url', url }));
+  } else {
+    impStatus.textContent = 'PPT 파일을 선택하거나 http(s) 링크를 입력해주세요.';
+  }
+});
 
 document.getElementById('btnOpenRegister').addEventListener('click', () => {
+  pendingSource = null;
+  pendingSourceBlob = null;
   const sel = document.getElementById('regLayout');
   sel.innerHTML = LAYOUTS[state.part].map(l => `<option value="${l.id}">${l.name}</option>`).join('');
   registerBox.classList.remove('hidden');
   registerBox.scrollIntoView({ behavior: 'smooth' });
 });
-document.getElementById('btnCancelRegister').addEventListener('click', hideRegisterBox);
+document.getElementById('btnCancelRegister').addEventListener('click', () => {
+  pendingSource = null;
+  pendingSourceBlob = null;
+  hideRegisterBox();
+});
 
 document.getElementById('btnSaveDesign').addEventListener('click', () => {
   const name = document.getElementById('regName').value.trim();
@@ -196,9 +383,21 @@ document.getElementById('btnSaveDesign').addEventListener('click', () => {
       font: document.getElementById('regFont').value,
     },
   };
+  if (pendingSource) {
+    design.source = pendingSource;
+    design.ref = pendingSource.type === 'url'
+      ? '링크에서 디자인가이드 복제: ' + pendingSource.url
+      : 'PPT에서 디자인가이드 복제: ' + pendingSource.name;
+    if (pendingSourceBlob) idbPut(design.id, pendingSourceBlob);
+  }
   saveCustomDesigns([...loadCustomDesigns(), design]);
   document.getElementById('regName').value = '';
+  document.getElementById('impFile').value = '';
+  document.getElementById('impUrl').value = '';
+  pendingSource = null;
+  pendingSourceBlob = null;
   hideRegisterBox();
+  importBox.classList.add('hidden');
   renderDesignGrid();
 });
 

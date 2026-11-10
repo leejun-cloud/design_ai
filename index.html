@@ -50,8 +50,28 @@
   <section class="panel hidden" id="panel2">
     <div class="panel-head">
       <h2>표준디자인을 고르세요 <span class="part-label" id="partLabel"></span></h2>
-      <button class="btn ghost" id="btnOpenRegister">＋ 새 표준디자인 등록</button>
+      <div class="head-btns">
+        <button class="btn" id="btnOpenImport">📥 PPT·링크에서 가져오기</button>
+        <button class="btn ghost" id="btnOpenRegister">＋ 새 표준디자인 등록</button>
+        <button class="btn ghost hidden" id="btnRestoreSeeds">기본 템플릿 복원</button>
+      </div>
     </div>
+
+    <!-- PPT/링크에서 디자인가이드 복제 -->
+    <div class="register-box hidden" id="importBox">
+      <h3>📥 PPT·링크에서 디자인가이드 복제</h3>
+      <p class="hint">PPT 파일(.pptx)이나 웹페이지 링크를 주면 색상·글꼴을 분석해서 표준디자인으로 등록합니다. 원소스는 나중에 열어볼 수 있습니다.</p>
+      <div class="form-grid">
+        <label>PPT 파일 (.pptx) <input type="file" id="impFile" accept=".pptx"></label>
+        <label>또는 링크 (URL) <input type="text" id="impUrl" placeholder="https://..."></label>
+      </div>
+      <div class="form-actions">
+        <button class="btn primary" id="btnAnalyze">🔍 분석해서 가져오기</button>
+        <button class="btn ghost" id="btnCancelImport">취소</button>
+      </div>
+      <p class="hint" id="impStatus"></p>
+    </div>
+
     <div class="design-grid" id="designGrid"></div>
 
     <!-- 표준디자인 등록 폼 -->
@@ -148,6 +168,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script src="templates.js"></script>
 <script src="app.js"></script>
 </body>
