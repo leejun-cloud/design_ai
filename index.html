@@ -90,6 +90,13 @@
       <label class="full">설명 <textarea id="cDesc" rows="4" placeholder="행사/발표 내용을 자유롭게 적어주세요. 문단은 줄바꿈으로 나뉩니다."></textarea></label>
       <label>주최/문의 <input type="text" id="cHost" placeholder="예: 문화기획팀 (02-1234-5678)"></label>
       <label id="ctaWrap" class="hidden">버튼 문구 (랜딩용) <input type="text" id="cCta" placeholder="예: 지금 신청하기"></label>
+      <label class="full">📎 자료 업로드 — 여러 개 가능 (사진 → 대표 이미지, 텍스트 .txt/.md → 제목·설명 자동 반영)
+        <input type="file" id="cFiles" multiple accept="image/*,.txt,.md,text/plain,text/markdown">
+      </label>
+      <div class="full file-list hidden" id="fileList"></div>
+      <label class="full">🔗 참고 링크 — 한 줄에 하나씩 (결과물에 링크로 들어갑니다)
+        <textarea id="cLinks" rows="2" placeholder="https://example.com/신청폼&#10;https://example.com/소개"></textarea>
+      </label>
     </div>
     <div class="form-actions">
       <button class="btn primary big" id="btnGenerate">✨ 생성하기</button>
@@ -116,20 +123,28 @@
   </section>
 </main>
 
-<!-- 디자인 가이드 모달 -->
+<!-- 실물 미리보기 + 디자인 가이드 모달 -->
 <div class="modal-backdrop hidden" id="guideModal">
-  <div class="modal">
-    <h3 id="guideTitle">디자인 가이드</h3>
-    <p class="guide-ref" id="guideRef"></p>
-    <div class="swatches" id="guideSwatches"></div>
-    <p class="guide-text" id="guideText"></p>
-    <pre class="guide-json" id="guideJson"></pre>
-    <div class="form-actions">
+  <div class="modal preview-modal">
+    <div class="modal-head">
+      <h3 id="guideTitle">디자인 미리보기</h3>
+      <button class="btn ghost" id="btnCloseGuide">✕ 닫기</button>
+    </div>
+    <div class="modal-actions form-actions">
       <button class="btn primary" id="btnUseGuide">✏️ 이 디자인으로 바로 만들기</button>
       <button class="btn" id="btnCloneGuide">🧬 가이드 복제해 새 디자인 등록</button>
+      <button class="btn" id="btnDownloadGuide">📄 디자인 가이드 .md 다운로드</button>
       <button class="btn" id="btnCopyJson">📋 JSON 복사</button>
-      <button class="btn ghost" id="btnCloseGuide">닫기</button>
     </div>
+    <p class="guide-ref" id="guideRef"></p>
+    <div class="preview-wrap">
+      <iframe id="guideFrame" title="실물 미리보기"></iframe>
+    </div>
+    <h4 class="guide-h">📘 디자인 가이드 (요소·구조 명세)</h4>
+    <div class="swatches" id="guideSwatches"></div>
+    <p class="guide-text" id="guideText"></p>
+    <pre class="guide-spec" id="guideSpec"></pre>
+    <pre class="guide-json hidden" id="guideJson"></pre>
   </div>
 </div>
 

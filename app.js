@@ -44,20 +44,16 @@ document.querySelectorAll('.part-card').forEach(card => {
   });
 });
 
-/* ---------- STEP 2: 표준디자인 목록 ---------- */
-function miniPreviewHtml(d) {
-  const t = d.tokens;
-  const isGrad = d.layout === 'warmgrad' || d.layout === 'gradient';
-  const grad = isGrad
-    ? `background: linear-gradient(160deg, ${t.primary}, ${t.secondary});`
-    : `background: ${t.bg};`;
-  const titleColor = isGrad ? '#fff' : (t.bg === t.primary ? t.text : t.primary);
-  return `<div class="mini" style="${grad}">
-    <div class="mini-bar" style="background:${t.secondary}"></div>
-    <div class="mini-title" style="color:${titleColor}; font-family:${t.font === 'serif' ? 'serif' : 'inherit'}">가나다 Aa</div>
-    <div class="mini-line" style="background:${titleColor}; opacity:.4"></div>
-    <div class="mini-line short" style="background:${titleColor}; opacity:.25"></div>
-  </div>`;
+/* ---------- STEP 2: 표준디자인 목록 (실물 렌더링 썸네일) ---------- */
+function sampleHtml(d) {
+  return RENDERERS[d.part](d, SAMPLE_CONTENT);
+}
+function thumbHtml(d) {
+  const html = sampleHtml(d).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+  const W = { ppt: 1340, poster: 740, landing: 1320 }[d.part];
+  const scale = (300 / W).toFixed(3);
+  const style = `width:${W}px; height:${Math.round(W * 1.7)}px; transform:scale(${scale});`;
+  return `<div class="thumb"><iframe loading="lazy" scrolling="no" tabindex="-1" style="${style}" srcdoc="${html}"></iframe><div class="thumb-hint">클릭하면 실물 전체 보기</div></div>`;
 }
 
 function renderDesignGrid() {
@@ -67,7 +63,7 @@ function renderDesignGrid() {
     const isCustom = custom.some(cd => cd.id === d.id);
     const layoutName = (LAYOUTS[d.part].find(l => l.id === d.layout) || {}).name || d.layout;
     return `<div class="design-card" data-id="${d.id}">
-      ${miniPreviewHtml(d)}
+      ${thumbHtml(d)}
       <div class="design-meta">
         <strong>${d.name}</strong>
         ${isCustom ? `<button class="del" data-del="${d.id}" title="삭제">🗑</button>` : '<span class="tag">인기 샘플</span>'}
@@ -82,8 +78,15 @@ function renderDesignGrid() {
   }).join('');
 
   const pick = id => allDesigns(state.part).find(d => d.id === id);
-  grid.querySelectorAll('[data-use]').forEach(btn => btn.addEventListener('click', () => selectDesign(pick(btn.dataset.use))));
-  grid.querySelectorAll('[data-guide]').forEach(btn => btn.addEventListener('click', () => openGuide(pick(btn.dataset.guide))));
+  // 카드 아무 곳이나 클릭 → 실물 전체 미리보기 모달
+  grid.querySelectorAll('.design-card').forEach(card => {
+    card.addEventListener('click', e => {
+      if (e.target.closest('[data-use],[data-guide],.del')) return;
+      openGuide(pick(card.dataset.id));
+    });
+  });
+  grid.querySelectorAll('[data-use]').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); selectDesign(pick(btn.dataset.use)); }));
+  grid.querySelectorAll('[data-guide]').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); openGuide(pick(btn.dataset.guide)); }));
   grid.querySelectorAll('.del').forEach(btn => {
     btn.addEventListener('click', e => {
       e.stopPropagation();
@@ -108,8 +111,13 @@ const guideModal = document.getElementById('guideModal');
 function openGuide(design) {
   guideDesign = design;
   const t = design.tokens;
-  document.getElementById('guideTitle').textContent = `📘 디자인 가이드 — ${design.name}`;
+  document.getElementById('guideTitle').textContent = `${design.name} — 실물 미리보기`;
   document.getElementById('guideRef').textContent = design.ref || '사용자 등록 디자인';
+  document.getElementById('guideFrame').srcdoc = sampleHtml(design); // 샘플 내용으로 실제 렌더링
+  const spec = LAYOUT_SPECS[design.part + ':' + design.layout] || [];
+  document.getElementById('guideSpec').textContent = spec.length
+    ? spec.map((x, i) => `${i + 1}. ${x}`).join('\n')
+    : '요소 명세는 .md 다운로드에서 확인하세요.';
   document.getElementById('guideText').textContent = design.guide ||
     `레이아웃: ${(LAYOUTS[design.part].find(l => l.id === design.layout) || {}).name || design.layout}`;
   document.getElementById('guideSwatches').innerHTML = [
@@ -126,6 +134,16 @@ guideModal.addEventListener('click', e => { if (e.target === guideModal) guideMo
 document.getElementById('btnUseGuide').addEventListener('click', () => {
   guideModal.classList.add('hidden');
   selectDesign(guideDesign);
+});
+
+document.getElementById('btnDownloadGuide').addEventListener('click', () => {
+  const md = generateGuideMd(guideDesign);
+  const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `디자인가이드_${guideDesign.name}.md`;
+  a.click();
+  URL.revokeObjectURL(a.href);
 });
 
 document.getElementById('btnCopyJson').addEventListener('click', () => {
@@ -184,6 +202,68 @@ document.getElementById('btnSaveDesign').addEventListener('click', () => {
   renderDesignGrid();
 });
 
+/* ---------- STEP 3: 자료 업로드 (대량 파일 + 링크) ---------- */
+state.images = [];   // 업로드한 사진 dataURL 목록 (첫 장이 대표 이미지)
+state.textNotes = []; // 업로드한 텍스트 파일 내용
+
+function resizeImageFile(file, cb) {
+  const fr = new FileReader();
+  fr.onload = () => {
+    const im = new Image();
+    im.onload = () => {
+      const max = 1600, scale = Math.min(1, max / Math.max(im.width, im.height));
+      const cv = document.createElement('canvas');
+      cv.width = Math.round(im.width * scale);
+      cv.height = Math.round(im.height * scale);
+      const ctx = cv.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, cv.width, cv.height);
+      ctx.drawImage(im, 0, 0, cv.width, cv.height);
+      cb(cv.toDataURL('image/jpeg', 0.85));
+    };
+    im.src = fr.result;
+  };
+  fr.readAsDataURL(file);
+}
+
+function renderFileList() {
+  const box = document.getElementById('fileList');
+  const rows = [
+    ...state.images.map((src, i) =>
+      `<div class="file-row"><img src="${src}"><span>${i === 0 ? '⭐ 대표 이미지' : '사진 ' + (i + 1)}</span><button class="btn sm" data-rmimg="${i}">제거</button></div>`),
+    ...state.textNotes.map((n, i) =>
+      `<div class="file-row"><span class="file-ic">📄</span><span>${n.name} — 제목·설명에 반영됨</span><button class="btn sm" data-rmtxt="${i}">제거</button></div>`),
+  ];
+  box.classList.toggle('hidden', !rows.length);
+  box.innerHTML = rows.join('');
+  box.querySelectorAll('[data-rmimg]').forEach(b => b.addEventListener('click', () => { state.images.splice(+b.dataset.rmimg, 1); renderFileList(); }));
+  box.querySelectorAll('[data-rmtxt]').forEach(b => b.addEventListener('click', () => { state.textNotes.splice(+b.dataset.rmtxt, 1); renderFileList(); }));
+}
+
+document.getElementById('cFiles').addEventListener('change', e => {
+  for (const file of e.target.files) {
+    if (file.type.startsWith('image/')) {
+      resizeImageFile(file, dataUrl => { state.images.push(dataUrl); renderFileList(); });
+    } else {
+      const fr = new FileReader();
+      fr.onload = () => {
+        const text = String(fr.result).trim();
+        state.textNotes.push({ name: file.name, text });
+        // 업로드한 글을 근거로 빈 칸 자동 채우기
+        const lines = text.split(/\n+/).filter(Boolean);
+        const titleEl = document.getElementById('cTitle');
+        const descEl = document.getElementById('cDesc');
+        if (!titleEl.value.trim() && lines[0]) titleEl.value = lines[0].replace(/^#+\s*/, '').slice(0, 60);
+        const body = lines.slice(titleEl.value === lines[0]?.replace(/^#+\s*/, '').slice(0, 60) ? 1 : 0).join('\n');
+        descEl.value = (descEl.value.trim() ? descEl.value + '\n' : '') + body.slice(0, 2000);
+        renderFileList();
+      };
+      fr.readAsText(file);
+    }
+  }
+  e.target.value = '';
+});
+
 /* ---------- STEP 3: 내용 입력 → 생성 ---------- */
 document.getElementById('btnBack2').addEventListener('click', () => goStep(2));
 
@@ -196,6 +276,8 @@ document.getElementById('btnGenerate').addEventListener('click', () => {
     desc: document.getElementById('cDesc').value.trim(),
     host: document.getElementById('cHost').value.trim(),
     cta: document.getElementById('cCta').value.trim(),
+    image: state.images[0] || null,
+    links: document.getElementById('cLinks').value.split(/\n+/).map(s => s.trim()).filter(s => /^https?:\/\//.test(s)),
   };
   if (!content.title) { alert('제목은 꼭 입력해주세요.'); return; }
 
