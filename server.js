@@ -25,7 +25,7 @@ const MIME = {
 function runClaude(systemPrompt, userPrompt, { allowRead = false } = {}) {
   return new Promise((resolve, reject) => {
     const args = ['-p', '--output-format', 'text', '--model', 'sonnet',
-      '--append-system-prompt', systemPrompt];
+      '--max-turns', '12', '--append-system-prompt', systemPrompt];
     if (allowRead) args.push('--allowedTools', 'Read');
     const child = spawn('claude', args, {
       cwd: os.tmpdir(),               // 프로젝트 CLAUDE.md 등 불필요한 컨텍스트 차단
@@ -100,7 +100,10 @@ const server = http.createServer((req, res) => {
     req.on('end', async () => {
       try {
         const body = JSON.parse(raw);
+        const started = Date.now();
+        console.log(`[${new Date().toLocaleTimeString()}] ${body.mode} 요청 시작 (part=${body.part}, 이미지 ${body.images ? body.images.length : 0}장)`);
         const result = await handleAi(body);
+        console.log(`[${new Date().toLocaleTimeString()}] ${body.mode} 완료 — ${Math.round((Date.now() - started) / 1000)}초`);
         res.writeHead(200, { 'content-type': 'application/json' });
         res.end(JSON.stringify(result));
       } catch (err) {

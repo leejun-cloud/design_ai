@@ -169,13 +169,29 @@ function selectDesign(design) {
   goStep(3);
 }
 
-/* ---------- Claude AI 호출 (Vercel 서버 함수) ---------- */
-async function callAI(payload) {
-  const res = await fetch('/api/ai', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
+/* ---------- Claude AI 호출 (로컬 Claude CLI 또는 Vercel 서버 함수) ---------- */
+async function callAI(payload, onTick) {
+  const ctrl = new AbortController();
+  const started = Date.now();
+  const killer = setTimeout(() => ctrl.abort(), 600000); // 10분 타임아웃
+  const ticker = onTick ? setInterval(() => {
+    const s = Math.round((Date.now() - started) / 1000);
+    onTick(`${Math.floor(s / 60)}분 ${s % 60}초 경과`);
+  }, 1000) : null;
+  let res;
+  try {
+    res = await fetch('/api/ai', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: ctrl.signal,
+    });
+  } catch (e) {
+    throw new Error(e.name === 'AbortError' ? '10분이 지나 중단했습니다' : e.message);
+  } finally {
+    clearTimeout(killer);
+    if (ticker) clearInterval(ticker);
+  }
   let data = null;
   try { data = await res.json(); } catch { throw new Error('AI 서버 응답을 읽지 못했습니다 (로컬 실행 중이면 배포 주소에서 사용하세요)'); }
   if (!res.ok) throw new Error(data && (data.message || data.error) ? (data.message || data.error) : `AI 서버 오류 ${res.status}`);
@@ -484,7 +500,7 @@ document.getElementById('btnAnalyze').addEventListener('click', async () => {
   }
   const btn = document.getElementById('btnAnalyze');
   btn.disabled = true;
-  impStatus.textContent = '⏳ Claude AI가 디자인 시스템을 정밀 분석하는 중… (30초~1분)';
+  impStatus.textContent = '⏳ Claude AI가 디자인 시스템을 정밀 분석하는 중… (보통 1~3분, 이미지가 있으면 더 걸립니다)';
   try {
     const payload = { mode: 'analyze', part: state.part, hint: requestedTopic };
     let source;
@@ -504,7 +520,8 @@ document.getElementById('btnAnalyze').addEventListener('click', async () => {
       source = { type: 'url', url };
       payload.url = url;
     }
-    const { guideMd, tokens } = await callAI(payload);
+    const { guideMd, tokens } = await callAI(payload, t =>
+      { impStatus.textContent = `⏳ Claude AI가 디자인 시스템을 정밀 분석하는 중… ${t} (보통 1~3분, 멈춘 게 아닙니다)`; });
     fillRegisterFormAI(guideMd, tokens, source);
   } catch (err) {
     // AI 실패 → 기존 간이 분석으로 대체
@@ -811,8 +828,9 @@ document.getElementById('btnGenerate').addEventListener('click', async () => {
         const credit = content.imageCredits[i];
         return credit ? `${credit.title || '사진'} (출처: ${credit.author || ''} ${credit.license || ''})`.trim() : `사용자 업로드 사진 ${i + 1}`;
       });
-      status.textContent = '🎨 Claude AI가 디자인가이드대로 결과물을 제작하는 중… (1~3분, 창을 닫지 마세요)';
-      const { html } = await callAI({ mode: 'compose', part: state.part, guideMd, content: contentText, imageList });
+      status.textContent = '🎨 Claude AI가 디자인가이드대로 결과물을 제작하는 중… (보통 1~5분, 창을 닫지 마세요)';
+      const { html } = await callAI({ mode: 'compose', part: state.part, guideMd, content: contentText, imageList },
+        t => { status.textContent = `🎨 Claude AI가 디자인가이드대로 결과물을 제작하는 중… ${t} (보통 1~5분, 멈춘 게 아닙니다)`; });
       // {{IMAGE_n}} 플레이스홀더를 실제 이미지로 치환
       let finalHtml = html;
       content.images.forEach((src, i) => { finalHtml = finalHtml.split(`{{IMAGE_${i + 1}}}`).join(src); });
