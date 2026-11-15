@@ -78,11 +78,20 @@ function sampleHtml(d) {
   return RENDERERS[d.part](d, SAMPLE_CONTENT);
 }
 function thumbHtml(d) {
+  if (d.hasPreview) {
+    // 가져온 원본 디자인 모습 그대로 (IndexedDB에서 비동기 로드)
+    return `<div class="thumb thumb-src"><img data-preview-id="${d.id}" alt="${d.name} 원본"><div class="thumb-hint">원본 디자인 · 클릭해 크게 보기</div></div>`;
+  }
   const html = sampleHtml(d).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
   const W = { ppt: 1340, poster: 740, landing: 1320 }[d.part];
   const scale = (300 / W).toFixed(3);
   const style = `width:${W}px; height:${Math.round(W * 1.7)}px; transform:scale(${scale});`;
-  return `<div class="thumb"><iframe loading="lazy" scrolling="no" tabindex="-1" style="${style}" srcdoc="${html}"></iframe><div class="thumb-hint">클릭하면 실물 전체 보기</div></div>`;
+  return `<div class="thumb"><iframe loading="lazy" scrolling="no" tabindex="-1" style="${style}" srcdoc="${html}"></iframe><div class="thumb-hint">예시 렌더링 · 클릭하면 전체 보기</div></div>`;
+}
+function hydratePreviews(scope) {
+  (scope || document).querySelectorAll('img[data-preview-id]').forEach(img => {
+    idbGet('preview-' + img.dataset.previewId, data => { if (data) img.src = typeof data === 'string' ? data : URL.createObjectURL(data); });
+  });
 }
 
 function renderDesignGrid() {
@@ -109,6 +118,7 @@ function renderDesignGrid() {
     </div>`;
   }).join('');
   document.getElementById('btnRestoreSeeds').classList.toggle('hidden', !loadHiddenSeeds().length);
+  hydratePreviews(grid);
 
   const pick = id => allDesigns(state.part).find(d => d.id === id);
   // 카드 아무 곳이나 클릭 → 실물 전체 미리보기 모달
@@ -130,6 +140,7 @@ function renderDesignGrid() {
         if (!confirm('이 표준디자인을 삭제할까요? (가져온 원소스 파일도 함께 삭제됩니다)')) return;
         saveCustomDesigns(loadCustomDesigns().filter(d => d.id !== id));
         idbDelete(id);
+        idbDelete('preview-' + id);
       } else {
         if (!confirm('기본 템플릿을 목록에서 숨길까요? (아래 "기본 템플릿 복원"으로 되살릴 수 있습니다)')) return;
         saveHiddenSeeds([...loadHiddenSeeds(), id]);
@@ -209,9 +220,20 @@ const guideModal = document.getElementById('guideModal');
 function openGuide(design) {
   guideDesign = design;
   const t = design.tokens;
-  document.getElementById('guideTitle').textContent = `${design.name} — 실물 미리보기`;
+  document.getElementById('guideTitle').textContent = design.hasPreview ? `${design.name} — 원본 디자인` : `${design.name} — 실물 미리보기`;
   document.getElementById('guideRef').textContent = design.ref || '사용자 등록 디자인';
-  document.getElementById('guideFrame').srcdoc = sampleHtml(design); // 샘플 내용으로 실제 렌더링
+  const frameEl = document.getElementById('guideFrame');
+  const imgEl = document.getElementById('guidePreviewImg');
+  if (design.hasPreview) {
+    frameEl.classList.add('hidden');
+    imgEl.classList.remove('hidden');
+    imgEl.removeAttribute('src');
+    idbGet('preview-' + design.id, data => { if (data) imgEl.src = typeof data === 'string' ? data : URL.createObjectURL(data); });
+  } else {
+    frameEl.classList.remove('hidden');
+    imgEl.classList.add('hidden');
+    frameEl.srcdoc = sampleHtml(design); // 기본 템플릿은 샘플 내용으로 렌더링
+  }
   if (design.guideMd) {
     // 등록된 원본 디자인가이드를 그대로 보여준다 (축약 없음)
     document.getElementById('guideSpec').textContent = design.guideMd;
@@ -278,6 +300,7 @@ const registerBox = document.getElementById('registerBox');
 function hideRegisterBox() { registerBox.classList.add('hidden'); }
 let pendingSource = null;      // 분석 중인 원소스 { type:'file'|'url', name?/url? }
 let pendingSourceBlob = null;  // pptx 원본 Blob
+let pendingPreview = null;     // 원본 미리보기 dataURL (썸네일·모달에 원본 그대로 표시)
 
 /* ---------- PPT·링크에서 디자인가이드 복제 ---------- */
 const importBox = document.getElementById('importBox');
@@ -494,6 +517,7 @@ document.getElementById('btnAnalyze').addEventListener('click', async () => {
   const url = document.getElementById('impUrl').value.trim();
   const requestedTopic = document.getElementById('impTopic').value.trim();
   pendingSourceBlob = null;
+  pendingPreview = null;
   if (!file && !/^https?:\/\//.test(url)) {
     impStatus.textContent = 'PPT·이미지 파일을 선택하거나 http(s) 링크를 입력해주세요.';
     return;
@@ -511,10 +535,12 @@ document.getElementById('btnAnalyze').addEventListener('click', async () => {
         const extracted = await pptxAiPayload(file);
         payload.text = extracted.text;
         payload.images = extracted.images;
+        if (extracted.images[0]) pendingPreview = `data:${extracted.images[0].media_type};base64,${extracted.images[0].data}`;
       } else {
         const block = await fileToImageBlock(file);
         if (!block) throw new Error('이미지를 읽지 못했습니다');
         payload.images = [block];
+        pendingPreview = `data:${block.media_type};base64,${block.data}`; // 원본 그대로 미리보기
       }
     } else {
       source = { type: 'url', url };
@@ -528,7 +554,7 @@ document.getElementById('btnAnalyze').addEventListener('click', async () => {
     impStatus.textContent = `⚠️ AI 분석 실패(${err.message}) — 간이 분석으로 대체합니다.`;
     const finish = result => { if (result && requestedTopic) result.topic = requestedTopic; fillRegisterForm(result, file ? { type: 'file', name: file.name } : { type: 'url', url }); };
     if (file && /\.pptx$/i.test(file.name)) analyzePptx(file, finish);
-    else if (file) analyzeImage(file, finish);
+    else if (file) { if (!pendingPreview) fileToImageBlock(file).then(b => { if (b) pendingPreview = `data:${b.media_type};base64,${b.data}`; }); analyzeImage(file, finish); }
     else analyzeUrl(url, finish);
   } finally {
     btn.disabled = false;
@@ -576,12 +602,17 @@ document.getElementById('btnSaveDesign').addEventListener('click', () => {
       : 'PPT에서 디자인가이드 복제: ' + pendingSource.name;
     if (pendingSourceBlob) idbPut(design.id, pendingSourceBlob);
   }
+  if (pendingPreview) {
+    design.hasPreview = true;                 // 원본 모습 그대로 썸네일·미리보기에 표시
+    idbPut('preview-' + design.id, pendingPreview);
+  }
   saveCustomDesigns([...loadCustomDesigns(), design]);
   document.getElementById('regName').value = '';
   document.getElementById('impFile').value = '';
   document.getElementById('impUrl').value = '';
   pendingSource = null;
   pendingSourceBlob = null;
+  pendingPreview = null;
   hideRegisterBox();
   importBox.classList.add('hidden');
   renderDesignGrid();
