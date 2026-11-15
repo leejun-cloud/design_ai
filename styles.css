@@ -123,6 +123,8 @@ main { max-width: 1060px; margin: 0 auto; padding: 32px 20px 80px; }
 
 /* STEP 4 결과 */
 .result-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.export-status { margin: -8px 0 16px; color: #475569; font-size: 13px; line-height: 1.55; }
+.result-actions .btn:disabled { opacity: .58; cursor: wait; }
 .slide-nav { display: flex; align-items: center; gap: 14px; justify-content: center; margin-bottom: 14px; }
 #resultFrame iframe { width: 100%; height: 72vh; border: 1px solid #cbd5e1;
   border-radius: 14px; background: #fff; }

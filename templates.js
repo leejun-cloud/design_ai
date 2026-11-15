@@ -13,7 +13,7 @@ const FONT_STACKS = {
 
 const FONT_LINKS = `
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&display=swap">`;
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800;900&family=Noto+Serif+KR:wght@400;600;700&display=swap">`;
 
 /* ---------- 파트별 레이아웃 틀 (등록 폼 선택지) ---------- */
 const LAYOUTS = {
@@ -23,6 +23,8 @@ const LAYOUTS = {
     { id: 'editorial', name: '에디토리얼 (매거진 명조)' },
     { id: 'earthy',    name: '어스톤 미니멀 (차분한 녹색·테라코타)' },
     { id: 'corporate', name: '기업 보고서형 (네이비 그리드)' },
+    { id: 'arctic',    name: '북극의 친구들 (빙하 블루·오로라 그린)' },
+    { id: 'winterland',name: '윈터 랜드스케이프 (포레스트 그린·베리 레드)' },
   ],
   poster: [
     { id: 'bigtypo',  name: '빅 타이포 (스위스 스타일)' },
@@ -63,6 +65,14 @@ const SEED_DESIGNS = [
     ref: '컨설팅·기업 IR 표준 양식 — 네이비+그리드+머리말 규격 (envato 인기 기업 템플릿 계열)',
     guide: '상단 머리말 띠 + 네이비 제목 + 깔끔한 그리드. 로고 자리·페이지 번호가 규격화된 비즈니스 표준.',
     tokens: { primary: '#1e3a5f', secondary: '#2e86ab', bg: '#ffffff', text: '#333d47', font: 'sans' } },
+  { id: 'ppt-polar-bears', part: 'ppt', layout: 'arctic', name: '북극의 친구들',
+    ref: 'Slide Members, “Where do polarbears live” (SM-7167) — 40장 16:9 교육용 테마. 흰 배경 위 블루·그린 조합, 북극곰·빙산·바다·오로라 이미지의 차가운 자연광 톤을 분석해 재구성.',
+    guide: '풀블리드 자연 사진과 순백 여백, 오로라 민트→글래시어 시안 그라데이션, 원형 프레임·원형 사진 콜라주, 기하학적 고딕과 유려한 스크립트의 교차 타이포를 핵심 문법으로 삼는다. 8개 마스터를 원고 길이에 따라 반복하며, 사진 위의 텍스트는 캡슐/그라데이션 실드로 보호한다.',
+    tokens: { primary: '#00A8E8', secondary: '#1CD8A5', bg: '#FFFFFF', text: '#68737D', font: 'sans' } },
+  { id: 'ppt-winter-landscape', part: 'ppt', layout: 'winterland', name: '윈터 랜드스케이프',
+    ref: 'Slide Members, “Winter Landscape Best PowerPoint Templates” (SM-20362) — 30장, 16:9. 겨울 풍경 사진과 레드·그린 팔레트, Georgia·Calibri·Fave Script Pro 서체 조합, 다이어그램·차트·목업 페이지 구성을 분석해 재구성.',
+    guide: '북극 테마의 차갑고 깨끗한 블루 톤과 달리, 설경 사진에 포레스트 그린과 베리 레드를 얹은 포근한 겨울 에디토리얼 스타일. 사진은 표지에서 크게 사용하고 내지에서는 얇은 프레임의 풍경 카드로 반복한다. Georgia 제목과 손글씨 포인트를 제한적으로 섞고, 데이터 페이지는 정돈된 Calibri 그리드로 가독성을 지킨다.',
+    tokens: { primary: '#285446', secondary: '#B8464B', bg: '#F8F7F2', text: '#26332E', font: 'serif' } },
 
   /* ===== 포스터 5종 ===== */
   { id: 'poster-bigtypo', part: 'poster', layout: 'bigtypo', name: '빅 타이포 스위스',
@@ -117,9 +127,10 @@ const SEED_DESIGNS = [
 const PART_STRUCTURES = {
   ppt: [
     '캔버스: 1280×720px (16:9), 슬라이드 패딩 상하 70px / 좌우 90px',
-    '구성: 총 4장 — ① 표지 ② 안내(날짜·장소·주최·링크) ③ 소개(본문 문단) ④ 마무리(감사합니다)',
-    '표지 공통: 오른쪽 42% 폭은 대표 이미지 패널(배경 cover), 텍스트 영역은 왼쪽 52%',
-    '페이지 번호: 우하단 26px 지점, 15px, 투명도 50%',
+    '기본 레이아웃은 4장(표지·안내·소개·마무리), 북극광 에디토리얼은 표지·목차·스토리 리드·본문 마스터 반복·요약으로 확장',
+    'PPTX/원고 입력 시 섹션 길이에 따라 본문 페이지를 동적으로 추가하며, 전체 슬라이드 수와 네비게이션은 생성된 문서의 실제 페이지 수로 계산',
+    '이미지는 대표 컷·섹션 컷·파노라마·원형 콜라주에 배치; 업로드 사진 우선, 없으면 공개 이미지 검색 후 출처 표기',
+    '페이지 번호는 우하단 고정, 인쇄 시 슬라이드마다 페이지 나눔',
   ],
   poster: [
     '캔버스: 세로형, 가로:세로 = 1:1.414 (A계열 종이 비율), 기준 폭 640px',
@@ -171,6 +182,25 @@ const LAYOUT_SPECS = {
     '본문 시작은 띠 아래 110px부터 (머리말과 간섭 금지)',
     '라벨은 네이비, 값은 진회색 — 2색 체계',
     '배경 순백, 장식은 밑줄·띠 2가지만',
+  ],
+  'ppt:arctic': [
+    '01 표지: 16:9 풀블리드 사진, 중앙 원형 라인(슬라이드 높이의 78%, 흰색 5px), 원 내부 제목. 전경 북극곰 실루엣이 원 라인을 일부 가린다. 좌우 가장자리에 10px 세로 마이크로타입.',
+    '02 목차: 어두운 오로라 사진, 중앙 Contents 60px 굵은 고딕. 아래에 37px 민트 필기체를 50% 불투명도로 겹친다. 번호 목록은 장당 10개 이내(5행×2열), 초과하면 목차 장을 추가한다. 행간 2.0, 아이콘·박스 금지.',
+    '03 스토리 리드: 우측 55% 풍경/주제 사진, 좌측에 시안 블루→투명 수평 오버레이. 좌측 9% 여백에서 필기체 킥커, 네이비 제목, 270자 이내 도입. 우측 아래 반투명 워터마크.',
+    '04 본문 A — 사진+캡슐: 풀블리드 사진과 하늘색 상단 워시, 중앙 필기체 제목. 본문은 폭 60% 라운드 캡슐 안에 두며 민트→시안 그라데이션 55% 불투명도, 본문 흰색 19px.',
+    '05 본문 B — 비대칭 분할: 좌측 57% 피사체 클로즈업을 크게 두고 오른쪽으로 흰색 페이드. 우측 38%는 시안 필기체 제목과 회색 본문. 사각 프레임 없이 사진과 여백을 부드럽게 연결.',
+    '06 본문 C — 원형 배지: 상단 50% 흰 여백, 하단 50% 풀폭 파노라마. 경계에 걸친 정원 배지의 지름은 슬라이드 높이의 55%, 중심은 X18%·Y55%. 우상단 텍스트 블록은 배지와 겹치지 않게 분리.',
+    '07 본문 D — 이중 원형 콜라주: 왼쪽 대형 원 이미지(47%)와 좌하단 24% 소형 원을 7시 방향으로 겹친다. 우측 상단 필기체 제목, 하단 긴 본문. 원형 이미지의 초점은 서로 다른 장면을 고른다.',
+    '08 요약·마무리: 흰 배경, 실제 원고의 마지막 세 섹션에서 제목·요약을 가져와 3개 원형 번호 카드로 배치. 데이터 입력이 없으면 차트 수치나 통계를 만들지 않는다. 마지막에 감사 문구·호스트·이미지 크레딧.',
+  ],
+  'ppt:winterland': [
+    '캔버스: 16:9, 따뜻한 오프화이트 #F8F7F2 70% 이상. 포레스트 그린은 제목·구조선, 베리 레드는 날짜·핵심 수치·소형 배지에만 사용.',
+    '서체 위계: 제목은 Georgia 계열 명조 44~64px, 본문은 Calibri/Pretendard 고딕 20~26px. Fave Script Pro 같은 손글씨는 짧은 계절 인사나 한 단어에만 대체 사용하고 본문에는 쓰지 않는다.',
+    '표지: 겨울 숲·설산·눈 덮인 마을 사진을 화면 오른쪽 45% 또는 풀블리드 배경으로 크게 배치. 어두운 그린 오버레이를 얇게 얹고 왼쪽 하단에 제목·부제를 둔다. 붉은 포인트는 작은 리본/선 하나로 제한.',
+    '섹션·본문: 상단에 작은 붉은 섹션 번호와 얇은 그린 구분선, 아래 큰 명조 제목. 본문은 2열 또는 3개 카드 그리드로 묶고 카드 배경은 흰색, 테두리는 연한 웜그레이.',
+    '사진과 도표: 풍경 사진은 가로형 16:9 또는 4:3 프레임으로 통일하고 한 페이지에서 1~2장만 쓴다. 차트·다이어그램은 그린 기본, 레드 강조 1계열로 단순화한다. 목업 이미지는 밝은 여백과 얇은 그림자를 둔다.',
+    '마무리: 크림 바탕에 설경 사진의 넓은 하단 띠, 중앙 명조 감사 문구, 손글씨는 짧은 인사에만 사용. 눈송이 장식은 구석에 작게 두고 사진의 디테일과 경쟁시키지 않는다.',
+    '색·사진 조화: 눈의 흰색을 날리지 않도록 중간톤을 살리고, 그린 숲과 레드 포인트가 사진에 이미 강할 때는 보조색 사용량을 줄인다. 강한 네온·청록 색보정·복수의 스크립트 서체는 피한다.',
   ],
   /* ---- 포스터 ---- */
   'poster:bigtypo': [
@@ -251,14 +281,51 @@ function generateGuideMd(design) {
   const t = design.tokens;
   const partName = { ppt: 'PPT(발표자료)', poster: '포스터', landing: '랜딩페이지' }[design.part];
   const layoutName = (LAYOUTS[design.part].find(l => l.id === design.layout) || {}).name || design.layout;
-  const spec = LAYOUT_SPECS[design.part + ':' + design.layout] || [];
+  const key = design.part + ':' + design.layout;
+  const spec = LAYOUT_SPECS[key] || [];
   const structure = PART_STRUCTURES[design.part] || [];
+  const isAurora = key === 'ppt:arctic';
+  const typography = isAurora
+    ? ['Display: Montserrat/Pretendard ExtraBold 54–68px, tracking -0.055em, line-height .96–1.08; bold white nouns on dark photo.', 'Emotional accent: available brush script at 36–52px, mint/cyan; use for subtitle and short key phrase only. If the script font is missing, use italic Noto Serif KR rather than fake glyphs.', 'Body: Pretendard 16–19px on photo / 16–19px slate on white; line-height 1.55–1.8. Never use pure black (#000) for body copy.', 'Microtype: 10px Montserrat uppercase, letter-spacing .3em, vertical at outer edge. Keep clear of photo focal points.']
+    : [`Display: ${t.font === 'serif' ? 'Noto Serif KR' : 'Pretendard'} Bold, use size and weight for hierarchy.`, 'Body: readable 16–24px, line-height 1.55–1.8, avoid dense paragraphs.', 'Accent type: reserve the secondary face or italic treatment for one short phrase per slide.'];
+  const imageRules = isAurora
+    ? ['Use one clear subject and a wide landscape crop for cover, TOC, and lead. Prefer luminous snow/ice and deep navy sky; keep the focal subject away from the central title ring.', 'For white pages, choose bright snow/soft studio backgrounds or clip the subject into circular masks. Avoid hard rectangular photo borders.', 'Overlay long copy only on a translucent mint-to-cyan pill or a left-to-right cyan shield (about 55% opacity at origin, fading to transparent).', 'If the user supplied images, place those first. Otherwise find subject-relevant, reusable images and carry author, source URL, and license through to the final credits. If search fails, use the built-in aurora illustration and disclose that fallback.', 'Use separate images for the small and large circle in the collage when available. Do not repeat one crop on adjacent slides unless there is no alternative.']
+    : ['Use topic-relevant images with enough negative space for text.', 'Keep crop ratio, corner treatment, and image color temperature consistent across the deck.', 'If no image is available, show a deliberate graphic fallback and preserve the same palette.'];
+  const adaptation = isAurora
+    ? ['Treat user text as source material. Preserve factual statements and section order; do not invent statistics, claims, citations, or examples.', 'Use PPTX slide headings as section headings and body paragraphs as slide content. For long prose, split on paragraph/sentence boundaries and continue onto more slides instead of shrinking body text.', 'Map a general subject to matching cover/TOC imagery, then use photographs, objects, or diagrams appropriate to each section. Keep the aurora palette unless the user explicitly requests a brand recolor.', 'Generate a contents page from extracted headings. Generate the final takeaway cards from the source text. Use chart geometry only when the source provides actual data values.', 'Keep image attribution in the last slide and on image slides. Credits include filename/title, creator, license, and source link.']
+    : ['Preserve source meaning and sequence when turning long text into pages.', 'Split dense text into readable pages; never shrink body type to force-fit.', 'Use only supplied facts and figures; leave a chart out when no data is supplied.'];
+  const paletteRows = isAurora
+    ? `| Aurora Mint | \`#1CD8A5\` | 135° gradient start; short script accents and data highlight |
+| Glacier Cyan | \`#00A8E8\` | gradient end; white-page titles, icons, numbers |
+| Deep Arctic Navy | \`#0B213F\` | dark photo overlays, contrast title words |
+| Pure Snow White | \`#FFFFFF\` | white-page field (target 50–65%+ on interior pages) |
+| Slate Body Gray | \`#68737D\` | body copy and captions; black is prohibited |
+| Ice Water Tint | \`#E6F4F9\` | infographic fill and low-contrast watermark |`
+    : `| Primary | \`${t.primary}\` | title and primary structure |
+| Secondary | \`${t.secondary}\` | accents, emphasis, key values |
+| Background | \`${t.bg}\` | main canvas |
+| Body | \`${t.text}\` | paragraph text |`;
+  const prompt = isAurora
+    ? `Create a 16:9 presentation in the Aurora & Pure White Editorial system. Use a full-bleed photo cover with a 5px white circle (78% slide height), split title typography (bold geometric sans plus mint/cyan script), layered foreground subject, dark aurora TOC, asymmetrical story lead with cyan-to-transparent shield, full-photo translucent pill page, white split-photo page, half-white/half-panorama circle badge, overlapping dual-circle collage, and a white takeaway close. Cycle the four body masters as content grows. Interior backgrounds stay white at least 50–65% of the time. Use #1CD8A5 → #00A8E8 at 135°, #0B213F for dark contrast, #68737D for body, and #E6F4F9 for infographic fills. Use user images first; otherwise add relevant openly licensed imagery and display author/license/source credits. Preserve the supplied content and never invent facts or chart values. Split long content over more slides instead of reducing type. Source material:\n\n[PASTE LECTURE OR PPTX CONTENT HERE]`
+    : `Create ${partName} content in the ${layoutName} design. Preserve source meaning, keep the palette and typography consistent, use readable page density, and add topic-relevant images with credits where appropriate. Do not invent facts or data. Source material:\n\n[PASTE CONTENT HERE]`;
   return `# 디자인 가이드 — ${design.name} (${partName})
 
 > 레이아웃 틀: **${layoutName}**
 > ${design.ref ? '샘플링 출처: ' + design.ref : '사용자 등록 디자인'}
 ${design.guide ? '\n**한 줄 요약**: ' + design.guide + '\n' : ''}
-## 1. 디자인 토큰 (색·글꼴)
+## 1. 디자인 의도와 결과물 기준
+
+${design.guide || layoutName + '의 고유한 레이아웃·색·타입 규칙을 일관되게 적용한다.'}
+
+- 결과물은 주제에 맞게 이미지를 포함하고, 이미지가 없는 입력에서도 시각 요소가 있는 상태로 완성한다.
+- 긴 원고는 의미 단위로 분할해 슬라이드 수를 늘린다. 가독성보다 글자 축소를 우선하지 않는다.
+- 원고/PPTX에서 얻은 사실·숫자만 사용한다. 입력에 없는 통계나 출처를 만들지 않는다.
+
+## 2. 캔버스와 공통 구조
+
+${structure.map(x => '- ' + x).join('\n')}
+
+## 3. 디자인 토큰과 색상 배분
 
 | 토큰 | 값 | 용도 |
 |---|---|---|
@@ -268,33 +335,59 @@ ${design.guide ? '\n**한 줄 요약**: ' + design.guide + '\n' : ''}
 | 글자 (text) | \`${t.text}\` | 본문 텍스트 |
 | 글꼴 | ${t.font === 'serif' ? '명조 (Noto Serif KR 계열)' : '고딕 (Pretendard 계열)'} | 전체 서체 |
 
-## 2. 캔버스·공통 구조
+### 전체 팔레트 역할
 
-${structure.map(x => '- ' + x).join('\n')}
+| 색 | HEX | 역할 |
+|---|---|---|
+${paletteRows}
 
-## 3. 요소별 명세 (위에서 아래 순서)
+${isAurora ? '**비율 기준:** 오프화이트/순백 배경은 내지의 50–65% 이상. 그라데이션 면은 제목·배지·캡슐·핵심 차트 강조에 제한한다. 검정 본문은 금지한다.\n' : ''}
 
-${spec.map((x, i) => (i + 1) + '. ' + x).join('\n')}
+## 4. 타이포그래피와 위계
 
-## 4. 콘텐츠 슬롯 (내용이 꽂히는 자리)
+${typography.map(x => '- ' + x).join('\n')}
 
-| 슬롯 | 설명 |
+## 5. 마스터 아키텍처와 페이지별 배치
+
+${spec.map((x, i) => `${String(i + 1).padStart(2, '0')}. ${x}`).join('\n')}
+
+${isAurora ? '본문 콘텐츠가 더 많으면 마스터 4–7을 반복하되 같은 마스터를 연속으로 배치하지 않는다. 마지막 요약은 원고의 마지막 세 섹션에서 가져오며, 내용이 많을 때는 앞선 내용도 요약 페이지에 억지로 우겨넣지 않는다.\n' : ''}
+
+## 6. 이미지·그래픽 조화
+
+${imageRules.map(x => '- ' + x).join('\n')}
+
+## 7. 원고/PPTX를 슬라이드로 변환하는 규칙
+
+${adaptation.map(x => '- ' + x).join('\n')}
+
+### 콘텐츠 슬롯
+
+| 슬롯 | 변환 방식 |
 |---|---|
-| 제목 | 가장 큰 타이포, 필수 |
-| 부제목 | 킥커/배지 — 제목 위 또는 아래 소형 텍스트 |
-| 날짜·장소·주최 | 정보 영역 (안내 슬라이드 / 하단 정보 / 정보 카드) |
-| 설명 | 본문 문단 — 줄바꿈이 문단(판매 랜딩은 앞 4줄이 혜택 불릿) |
-| 대표 이미지 | 없으면 주·보조색 그라데이션 자동 생성 이미지로 대체 |
-| 링크 | 안내 슬라이드 행 / 포스터 하단 / 랜딩 링크 버튼 |
+| 제목/첫 슬라이드 제목 | 표지의 주 고딕, 중첩 스크립트 보조 구절 |
+| 슬라이드 제목 | 원고의 제목·소제목을 보존. 소제목이 없으면 중립적인 순번 제목 생성 |
+| 본문 | 문단 단위 분할, 페이지 당 1–3개 정보 블록 |
+| 사진/도해 | 업로드 파일 우선. 없으면 주제 검색, 이미지 출처·라이선스 표시 |
+| 수치/차트 | 원고에서 추출된 수치만 시각화 |
+| 출처/링크 | 마지막 페이지의 크레딧 또는 입력된 링크 영역 |
 
-## 5. 재현 규칙
+## 8. 금지·검수 규칙
 
-- 포인트색(secondary)은 **한 화면에 1~2곳만** 사용한다.
-- 글꼴은 ${t.font === 'serif' ? '명조' : '고딕'} 하나로 통일하고 굵기로만 위계를 만든다.
-- 여백·비율을 바꾸지 말 것 — 색만 바꾸면 같은 디자인의 브랜드 변형이 된다.
+- 매 슬라이드의 배경, 제목, 본문, 사진을 같은 방식으로 반복하지 말 것. 마스터 변주로 리듬을 만든다.
+- 이미지를 단순히 장식으로 붙이지 말 것. 캡슐/원형 마스크/페이드 중 하나로 사진과 타이포를 조화시킨다.
+- 사진 초점 위에 본문을 올리지 말 것. 필요한 경우에만 캡슐이나 그라데이션 실드를 사용한다.
+- 사실·차트 값·이미지 라이선스를 임의로 만들어 넣지 말 것.
+- 글자 잘림, 사진 초점 겹침, 대비 부족, 페이지 번호/크레딧 겹침을 최종 미리보기에서 확인한다.
+
+## 9. 재현용 생성 프롬프트
+
+\`\`\`markdown
+${prompt}
+\`\`\`
 
 \`\`\`json
-${JSON.stringify({ part: design.part, layout: design.layout, tokens: design.tokens }, null, 2)}
+${JSON.stringify({ part: design.part, layout: design.layout, tokens: design.tokens, guide: design.guide || '', reference: design.ref || '', canvas: structure, pageArchitecture: spec, typography, imageRules, contentRules: adaptation }, null, 2)}
 \`\`\`
 `;
 }
@@ -303,7 +396,7 @@ ${JSON.stringify({ part: design.part, layout: design.layout, tokens: design.toke
 const SAMPLE_CONTENT = {
   title: '2026 가을 음악회', subtitle: '함께 만드는 하모니',
   date: '2026년 11월 21일 (토) 오후 7시', place: '소망홀 대강당',
-  desc: '누구나 무료로 즐기는 가을밤의 콘서트입니다.\n오케스트라와 합창단이 함께 무대에 오릅니다.\n따뜻한 차와 다과가 준비되어 있습니다.',
+  desc: '누구나 무료로 즐기는 가을밤의 콘서트입니다.\n오케스트라와 합창단이 함께 무대에 오릅니다.\n따뜻한 차와 다과가 준비되어 있습니다.\n관객과 함께 부르는 마지막 곡으로 공연을 마무리합니다.',
   host: '문화기획팀 (02-1234-5678)', cta: '지금 신청하기', image: null, links: [],
 };
 
@@ -348,13 +441,178 @@ ${css}
 }
 
 /* =====================================================
- * PPT 렌더러 — 16:9 슬라이드 4장 (표지/안내/내용/마무리)
+ * PPT 렌더러 — 기본 4장 + Aurora Editorial 동적 다장 구조
  * ===================================================== */
+function auroraScene(t) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900"><defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#071b36"/><stop offset=".58" stop-color="#124c70"/><stop offset="1" stop-color="#d7f0f4"/></linearGradient><linearGradient id="aur" x2="1" y2="1"><stop stop-color="${t.secondary}" stop-opacity="0"/><stop offset=".4" stop-color="${t.secondary}" stop-opacity=".86"/><stop offset="1" stop-color="${t.primary}" stop-opacity="0"/></linearGradient><linearGradient id="ice" x2="0" y2="1"><stop stop-color="#f9ffff"/><stop offset="1" stop-color="#90c8dc"/></linearGradient></defs><rect width="1600" height="900" fill="url(#sky)"/><path d="M70 280 C350 40 580 140 850 235 S1260 270 1530 78 L1600 185 C1300 390 1120 330 830 290 S360 280 110 420Z" fill="url(#aur)" opacity=".78"/><path d="M0 680 190 560 360 655 560 490 770 660 940 510 1160 665 1370 500 1600 660V900H0Z" fill="#164567"/><path d="M0 745 230 640 430 720 670 580 900 735 1120 590 1370 730 1600 625V900H0Z" fill="url(#ice)"/><path d="M0 805 Q260 735 510 795 T1030 790 T1600 770V900H0Z" fill="#fff"/><g fill="#fff" opacity=".75"><circle cx="190" cy="130" r="2"/><circle cx="480" cy="210" r="3"/><circle cx="1080" cy="135" r="2"/><circle cx="1390" cy="260" r="2"/><circle cx="840" cy="92" r="2"/></g></svg>`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
+function auroraChunks(c) {
+  const chunks = []; let plainSequence = 0;
+  const add = (heading, body) => {
+    const clean = String(body || '').trim();
+    if (!clean) return;
+    if (heading === '핵심 내용') heading = `핵심 내용 ${String(++plainSequence).padStart(2, '0')}`;
+    let rest = clean;
+    while (rest.length > 250) {
+      let cut = rest.lastIndexOf(' ', 250);
+      if (cut < 180) cut = 250;
+      chunks.push({ heading, body: rest.slice(0, cut).trim() });
+      rest = rest.slice(cut).trim();
+      heading = `${heading} · 계속`;
+    }
+    if (rest) chunks.push({ heading, body: rest });
+  };
+  if (Array.isArray(c.sections) && c.sections.length) {
+    const sourceSections = c.sections.slice();
+    const first = sourceSections[0];
+    if (first && typeof first !== 'string' && (first.cover || String(first.heading || '').trim() === String(c.title || '').trim())) {
+      sourceSections.shift();
+      const intro = String(first.body || first.text || '').trim();
+      if (intro) add('도입', intro);
+    }
+    sourceSections.forEach((s, i) => {
+      if (typeof s === 'string') add(`핵심 내용 ${String(i + 1).padStart(2, '0')}`, s);
+      else {
+        const heading = s.heading || `핵심 내용 ${String(i + 1).padStart(2, '0')}`;
+        const body = s.body || s.text || '';
+        if (String(body).trim()) add(heading, body);
+        else if (String(heading).trim() !== String(c.title || '').trim()) chunks.push({ heading, body: '' });
+      }
+    });
+  } else {
+    let current = '', currentHeading = '핵심 내용';
+    const lines = String(c.desc || '').split(/\n+/).map(x => x.trim()).filter(Boolean);
+    if (lines.length && lines[0].replace(/^#{1,6}\s*/, '').trim() === String(c.title || '').trim()) lines.shift();
+    lines.forEach(line => {
+      const h = line.match(/^#{1,4}\s+(.+)/);
+      if (h) { if (current) add(currentHeading, current); current = ''; currentHeading = h[1].trim(); return; }
+      if (current) add(currentHeading, current);
+      add(currentHeading, line);
+      current = '';
+    });
+    if (current) add(currentHeading, current);
+  }
+  return chunks;
+}
+
+function auroraMetrics(c) {
+  const sourceLines = [
+    ...(c.sections || []).flatMap(s => typeof s === 'string' ? [s] : [s.heading, s.body || s.text || '']),
+    ...String(c.desc || '').split(/\n+/),
+  ];
+  const found = [];
+  for (const raw of sourceLines) {
+    const line = String(raw || '').trim().replace(/^[-*•]\s*/, '');
+    const m = line.match(/^(.{2,32}?)[：:]\s*([\d,]+(?:\.\d+)?)\s*(%|명|건|개|회|년|점|원)?\s*$/);
+    if (!m) continue;
+    const value = Number(m[2].replace(/,/g,''));
+    if (!Number.isFinite(value)) continue;
+    const row = { label: m[1].trim(), value, display: `${m[2]}${m[3] || ''}`, unit: m[3] || '' };
+    if (!found.some(x => x.label === row.label && x.value === row.value)) found.push(row);
+    if (found.length === 4) break;
+  }
+  return found;
+}
+
+function renderAuroraPPT(design, c) {
+  const t = design.tokens, chunks = auroraChunks(c), imgs = (c.images || []).filter(Boolean);
+  const scene = imgs.length ? imgs : [auroraScene(t)];
+  const sections = chunks.length ? chunks : [{ heading: '핵심 내용', body: '이 영역에 강의의 핵심 내용을 입력하세요.' }];
+  const sceneCss = scene.slice(0, 8).map((src, i) => `.scene${i}{--scene:url("${src}")}`).join('\n');
+  const sceneClass = i => `scene${i % Math.min(scene.length, 8)}`;
+  const credit = i => {
+    const item = (c.imageCredits || [])[i % Math.max(1, (c.imageCredits || []).length)];
+    if (!item) return '';
+    const label = `${esc(item.title || '이미지 출처')} · ${esc(item.author || '')} · ${esc(item.license || '')}`;
+    return item.source ? `<a class="credit" href="${esc(item.source)}" target="_blank" rel="noopener">${label}</a>` : `<span class="credit">${label}</span>`;
+  };
+  const tocGroups = [];
+  for (let i = 0; i < sections.length; i += 10) tocGroups.push(sections.slice(i, i + 10));
+  if (!tocGroups.length) tocGroups.push([{ heading: '핵심 이야기' }]);
+  const topicText = [c.title, c.subtitle, ...sections.slice(0, 4).map(s => `${s.heading} ${s.body}`)].join(' ').toLowerCase();
+  const polarTopic = /polar\s*bear|북극곰|북극|arctic|antarctic|얼음곰/.test(topicText);
+  const titleWords = String(c.title || '새로운 이야기').split(/\s+/).filter(Boolean);
+  const titleMarkup = titleWords.map((w, i) => `<span class="${i % 2 ? 'script' : 'display'}">${esc(w)}</span>`).join('');
+  const slides = [];
+  const page = n => `<span class="page">${String(n).padStart(2, '0')}</span>`;
+  const micro = text => `<span class="micro">${esc(text)}</span>`;
+  const tocImage = scene.length > 1 ? 1 : 0, leadImage = scene.length > 2 ? 2 : 0;
+  const bearCutout = polarTopic ? `<svg class="bear-cutout" viewBox="0 0 420 250" aria-label="북극곰 실루엣" role="img"><path d="M48 170c-13-36 4-77 39-94 30-15 72-10 99 5 25 14 39 23 69 18l28-22c18-14 43-13 55 1l18 22 35 7c17 3 28 13 23 25-4 10-17 15-34 14l-18 32c-8 14-17 23-34 23h-12l-3 34h-28l-4-34H140l-8 34h-28l1-39c-28-3-48-14-57-26z" fill="#f9ffff" stroke="#c4e6ee" stroke-width="5"/><path d="M312 92c11-13 28-14 39-3l13 17-31 10-21-9z" fill="#f9ffff" stroke="#c4e6ee" stroke-width="5"/><circle cx="355" cy="120" r="3.5" fill="#0b213f"/><path d="M384 133q18 2 27 12" fill="none" stroke="#0b213f" stroke-width="4" stroke-linecap="round"/></svg>` : '';
+  slides.push(`<section class="slide cover ${sceneClass(0)}"><div class="cover-shade"></div><div class="cover-ring"></div>${micro(polarTopic ? 'POLAR / FIELD STUDY' : 'AURORA / STORY')}<div class="cover-title">${titleMarkup}${c.subtitle ? `<span class="script subtitle">${esc(c.subtitle)}</span>` : ''}</div>${bearCutout}${credit(0)}${page(1)}</section>`);
+  tocGroups.forEach((group, groupIndex) => {
+    const toc = group.map((s, i) => `<li><span>${String(groupIndex * 10 + i + 1).padStart(2, '0')}</span>${esc(s.heading)}</li>`).join('');
+    slides.push(`<section class="slide toc ${sceneClass(tocImage)}"><div class="dark-shade"></div>${micro('AURORA / CONTENTS')}<div class="toc-head"><h2>Contents${tocGroups.length > 1 ? ` · ${groupIndex + 1}` : ''}</h2><span>${esc(c.title || '')}</span></div><ol>${toc}</ol>${credit(tocImage)}${page(slides.length + 1)}</section>`);
+  });
+  slides.push(`<section class="slide lead ${sceneClass(leadImage)}"><div class="lead-shield"></div><div class="lead-copy"><span class="script lead-kicker">${esc(c.subtitle || 'A story begins')}</span><h2>${esc(c.title || '')}</h2><p>${esc(sections[0].body.slice(0, 220))}</p></div><strong class="watermark">${esc((c.title || 'STORY').split(/\s+/).slice(0, 3).join(' '))}</strong>${micro('NORTH / 01')} ${credit(leadImage)}${page(slides.length + 1)}</section>`);
+
+  sections.forEach((s, i) => {
+    const type = ['pill', 'split', 'badge', 'collage'][i % 4];
+    const imageIndex = (i + 3) % scene.length, cls = sceneClass(imageIndex), p = page(slides.length + 1);
+    const heading = esc(s.heading || `핵심 내용 ${String(i + 1).padStart(2, '0')}`), body = esc(s.body);
+    if (type === 'pill') slides.push(`<section class="slide pill ${cls}"><div class="photo-wash"></div>${micro(`FIELD NOTE / ${String(i + 1).padStart(2, '0')}`)}<h2 class="script">${heading}</h2><div class="pill-box"><p>${body}</p></div>${credit(imageIndex)}${p}</section>`);
+    if (type === 'split') slides.push(`<section class="slide split"><div class="split-photo ${cls}"></div><div class="split-copy"><span class="script">${heading}</span><p>${body}</p><i></i></div>${credit(imageIndex)}${p}</section>`);
+    if (type === 'badge') slides.push(`<section class="slide badge-slide"><div class="badge-copy"><b>ARCTIC NOTES</b><h2>${heading}</h2><p>${body}</p></div><div class="panorama ${cls}"></div><div class="circle-badge"><span class="script">${heading}</span></div>${credit(imageIndex)}${p}</section>`);
+    if (type === 'collage') slides.push(`<section class="slide collage"><div class="circle-main ${cls}"></div><div class="circle-small ${sceneClass(imageIndex + 1)}"></div><div class="collage-title script">${heading}</div><p class="collage-copy">${body}</p>${credit(imageIndex)}${p}</section>`);
+  });
+
+  const metrics = auroraMetrics(c);
+  const takeaways = sections.slice(-3).map((s, i) => `<article><span class="ring-number">${String(i + 1).padStart(2, '0')}</span><h3>${esc(s.heading)}</h3><p>${esc(s.body.slice(0, 160))}</p></article>`).join('');
+  let summaryContent = takeaways;
+  if (metrics.length) {
+    const isPercent = metrics.every(m => m.unit === '%');
+    const sameUnit = metrics.every(m => m.unit === metrics[0].unit);
+    if (isPercent) summaryContent = metrics.map(m => `<article class="metric-item"><div class="donut" style="--value:${Math.max(0,Math.min(100,m.value))}%"><span>${esc(m.display)}</span></div><h3>${esc(m.label)}</h3></article>`).join('');
+    else if (sameUnit && metrics[0].unit) {
+      const maxValue = Math.max(...metrics.map(m => m.value), 1);
+      summaryContent = metrics.map(m => `<article class="metric-bar"><div><h3>${esc(m.label)}</h3><b>${esc(m.display)}</b></div><span><i style="width:${Math.max(2,100*m.value/maxValue)}%"></i></span></article>`).join('');
+    } else summaryContent = metrics.map(m => `<article class="metric-item"><span class="ring-number">●</span><h3>${esc(m.label)}</h3><b>${esc(m.display)}</b></article>`).join('');
+  }
+  slides.push(`<section class="slide summary"><div class="summary-head"><span class="script">${metrics.length ? 'Data & essentials' : 'The essentials'}</span><h2>${metrics.length ? '입력 데이터와 핵심 정리' : '핵심 정리'}</h2></div><div class="summary-grid ${metrics.length ? 'metrics-grid' : ''}">${summaryContent}</div><div class="summary-rule"></div><p class="thanks">감사합니다</p>${c.host ? `<span class="host">${esc(c.host)}</span>` : ''}<div class="all-credits">${(c.imageCredits || []).filter(Boolean).map(x => x.source ? `<a href="${esc(x.source)}" target="_blank" rel="noopener">${esc(x.title || 'Image')} — ${esc(x.author || '')}, ${esc(x.license || '')}</a>` : `<span>${esc(x.title || 'Image')} — ${esc(x.author || '')}, ${esc(x.license || '')}</span>`).join('')}</div>${page(slides.length + 1)}</section>`);
+
+  const css = `
+:root{--mint:${t.secondary};--cyan:${t.primary};--navy:#0B213F;--slate:#68737D;--tint:#E6F4F9;--aurora:linear-gradient(135deg,${t.secondary},${t.primary});}
+body{margin:0;background:#142337;font-family:'Montserrat','Pretendard',Arial,sans-serif;color:var(--slate)}
+.slide{width:1280px;max-width:100%;aspect-ratio:16/9;margin:24px auto;overflow:hidden;position:relative;background:#fff;box-shadow:0 12px 38px rgba(0,0,0,.34);box-sizing:border-box}
+${sceneCss}
+.cover,.toc,.lead,.pill,.split-photo,.panorama,.circle-main,.circle-small{background-image:var(--scene);background-size:cover;background-position:center}
+.cover{display:grid;place-items:center;background-image:linear-gradient(180deg,rgba(5,25,49,.18),rgba(5,25,49,.34)),var(--scene);color:#fff}
+.cover-shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(11,33,63,.24),rgba(11,33,63,.08),rgba(11,33,63,.25))}
+.cover-ring{position:absolute;width:auto;height:78%;aspect-ratio:1;left:50%;top:50%;transform:translate(-50%,-50%);border:5px solid rgba(255,255,255,.92);border-radius:50%;box-shadow:0 0 0 1px rgba(255,255,255,.3),0 0 35px rgba(0,168,232,.22)}
+.cover-title{position:absolute;z-index:3;left:27%;right:27%;top:50%;transform:translateY(-50%);display:block;text-align:center;line-height:1.04;text-shadow:0 3px 24px rgba(0,0,0,.24)}
+.cover-title .display,.cover-title>.script:not(.subtitle){display:inline-block;margin:0 5px;vertical-align:middle}
+.display{font-size:clamp(42px,5.1vw,68px);font-weight:900;letter-spacing:-.055em;color:#fff;text-transform:uppercase}
+.script{font-family:'Caveat','Brush Script MT','Segoe Script','Noto Serif KR',cursive;font-style:italic;font-weight:400;color:var(--mint);letter-spacing:-.025em}
+.cover-title .script{font-size:clamp(34px,4vw,52px);margin:-3px 0 1px;color:var(--mint)}
+.cover-title .subtitle{display:block;font-size:32px;margin-top:20px;color:#fff}
+.bear-cutout{position:absolute;z-index:4;width:35%;height:auto;left:2%;bottom:1%;filter:drop-shadow(0 10px 15px rgba(4,28,49,.34))}
+.micro{position:absolute;z-index:6;left:18px;top:45%;writing-mode:vertical-rl;transform:rotate(180deg);font-size:10px;letter-spacing:.3em;color:rgba(255,255,255,.78)}
+.page{position:absolute;right:34px;bottom:24px;z-index:8;font-size:13px;letter-spacing:.12em;color:rgba(255,255,255,.72)}
+.credit{position:absolute;z-index:8;left:22px;bottom:20px;color:#fff;background:rgba(11,33,63,.54);border-radius:999px;padding:6px 12px;font-size:10px;text-decoration:none;max-width:70%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toc{color:#fff;background-image:linear-gradient(90deg,rgba(5,22,45,.7),rgba(5,22,45,.17),rgba(5,22,45,.56)),var(--scene)}
+.dark-shade{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 48%,rgba(0,168,232,.14),transparent 65%),linear-gradient(180deg,rgba(5,20,41,.45),rgba(5,20,41,.55))}
+.toc-head{position:absolute;z-index:2;top:21%;left:0;right:0;text-align:center}.toc-head h2{font-size:60px;line-height:1;margin:0;font-weight:900;letter-spacing:-.05em}.toc-head span{display:block;margin-top:-4px;opacity:.52;font:italic 37px 'Caveat','Brush Script MT','Segoe Script','Noto Serif KR',cursive;color:#7CE8C8}
+.toc ol{position:absolute;z-index:2;left:24%;right:24%;top:46%;list-style:none;padding:0;margin:0;display:grid;grid-auto-flow:column;grid-template-rows:repeat(5,auto);column-gap:58px}.toc li{display:flex;gap:18px;justify-content:flex-start;color:#fff;font-size:18px;line-height:2}.toc li span{color:var(--mint);font-weight:700;letter-spacing:.08em}
+.lead{color:white;background-position:center right;background-image:linear-gradient(90deg,rgba(0,136,184,.94) 0%,rgba(0,136,184,.78) 38%,rgba(0,136,184,0) 70%),var(--scene)}
+.lead-copy{position:absolute;left:9%;top:18%;width:39%;z-index:2}.lead-kicker{display:block;font-size:38px;color:#fff;margin-bottom:10px}.lead-copy h2{font-size:55px;line-height:1.02;color:var(--navy);margin:0 0 26px;font-weight:900;letter-spacing:-.04em}.lead-copy p{font-size:17px;line-height:1.7;color:#fff;max-width:470px}.watermark{position:absolute;right:4%;bottom:8%;font-size:53px;color:rgba(255,255,255,.42);text-transform:uppercase;letter-spacing:-.05em}.lead .micro{left:auto;right:16px;top:18%;transform:none}
+.pill{color:#fff;background-image:linear-gradient(180deg,rgba(40,168,224,.26),rgba(11,33,63,.28)),var(--scene)}.pill:before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(40,168,224,.35) 0%,transparent 63%)}.pill .micro{top:24%;left:50%;transform:translateX(-50%);writing-mode:initial}.pill h2{position:absolute;z-index:2;left:20%;right:20%;top:23%;text-align:center;font-size:44px;text-shadow:0 3px 15px rgba(0,0,0,.25)}.pill-box{position:absolute;z-index:2;left:20%;right:20%;top:39%;min-height:29%;display:grid;place-items:center;padding:25px 48px;border-radius:999px;background:linear-gradient(135deg,rgba(28,216,165,.55),rgba(0,168,232,.54));backdrop-filter:blur(5px);box-shadow:0 14px 45px rgba(11,33,63,.13);box-sizing:border-box}.pill-box p{max-width:690px;text-align:center;color:white;font-size:17px;line-height:1.5;margin:0;text-shadow:0 1px 8px rgba(0,41,63,.24)}
+.split{background:#fff}.split-photo{position:absolute;left:0;top:0;bottom:0;width:57%;background-size:cover;background-position:center;border-radius:0 48% 48% 0/0 50% 50% 0;mask-image:linear-gradient(90deg,#000 78%,transparent 100%)}.split-copy{position:absolute;left:62%;right:7%;top:23%;}.split-copy .script{font-size:44px;line-height:1.05;display:block;color:var(--cyan)}.split-copy p{font-size:19px;line-height:1.8;margin-top:30px;color:var(--slate)}.split-copy i{display:block;width:58px;height:3px;background:var(--aurora);margin-top:24px;border-radius:4px}
+.badge-slide{background:#fff}.badge-copy{position:absolute;left:42%;right:8%;top:13%;height:36%;z-index:2}.badge-copy b{font-size:13px;letter-spacing:.16em;color:var(--cyan)}.badge-copy h2{font-size:34px;color:var(--navy);margin:10px 0}.badge-copy p{font-size:16px;line-height:1.55;max-width:650px;margin:0}.panorama{position:absolute;left:0;right:0;bottom:0;height:50%;background-position:center 58%}.circle-badge{position:absolute;left:2.5%;top:27.5%;width:auto;height:55%;aspect-ratio:1;border-radius:50%;background:var(--aurora);display:grid;place-items:center;z-index:3;box-shadow:0 15px 38px rgba(11,33,63,.24)}.circle-badge span{width:70%;text-align:center;color:#fff;font-size:32px;line-height:1.08;overflow-wrap:anywhere}.badge-slide .credit{bottom:12px}
+.collage{background:#fff}.circle-main,.circle-small{position:absolute;border-radius:50%;background-size:cover;background-position:center;box-shadow:0 15px 38px rgba(11,33,63,.17)}.circle-main{left:8%;top:9%;width:auto;height:78%;aspect-ratio:1}.circle-small{left:7%;top:57%;width:auto;height:37%;aspect-ratio:1;border:8px solid #fff;box-sizing:border-box}.collage-title{position:absolute;left:59%;top:25%;width:33%;font-size:48px;line-height:1.03;color:var(--cyan);overflow-wrap:anywhere}.collage-copy{position:absolute;left:53%;right:8%;bottom:11%;font-size:16px;line-height:1.65;color:var(--slate)}.collage .credit{color:#50616c;background:rgba(230,244,249,.9)}
+.summary{background:#fff;padding:7% 8% 6%;}.summary-head .script{font-size:30px}.summary-head h2{font-size:44px;color:var(--navy);margin:3px 0 0}.summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-top:38px}.summary-grid article{position:relative;padding:22px 20px 20px 78px;min-height:145px;background:var(--tint);border-radius:4px}.ring-number{position:absolute;left:20px;top:24px;width:42px;height:42px;border:3px solid transparent;border-radius:50%;background:linear-gradient(#fff,#fff) padding-box,var(--aurora) border-box;display:grid;place-items:center;color:var(--cyan);font-size:13px;font-weight:800}.summary-grid h3{font-size:19px;color:var(--navy);margin:0 0 10px}.summary-grid p{font-size:14px;line-height:1.55;margin:0}.summary-rule{position:absolute;left:8%;right:8%;bottom:22%;height:1px;background:linear-gradient(90deg,transparent,var(--mint),var(--cyan),transparent)}.thanks{position:absolute;bottom:7%;left:8%;font:italic 31px 'Caveat','Brush Script MT','Segoe Script','Noto Serif KR',cursive;color:var(--cyan);margin:0}.host{position:absolute;bottom:8%;right:8%;font-size:13px;color:var(--slate)}.all-credits{position:absolute;left:8%;right:8%;bottom:2.5%;display:flex;gap:12px;flex-wrap:wrap}.all-credits a,.all-credits span{font-size:9px;color:#637783;text-decoration:none}.summary .page{color:#68737D}
+.metrics-grid{grid-template-columns:repeat(auto-fit,minmax(190px,1fr));align-items:center}.summary-grid .metric-item{padding:15px;text-align:center;min-height:180px;background:transparent;display:grid;justify-items:center;align-content:center}.metric-item h3{margin:12px 0 0}.metric-item b{color:var(--cyan);font-size:26px}.donut{width:126px;height:126px;border-radius:50%;background:conic-gradient(var(--cyan) var(--value),#D8EEF8 0);display:grid;place-items:center;position:relative}.donut:before{content:'';position:absolute;inset:12px;border-radius:50%;background:#fff}.donut span{z-index:1;color:var(--navy);font-weight:800;font-size:23px}.summary-grid .metric-bar{padding:14px 20px;background:transparent;min-height:0}.metric-bar>div{display:flex;align-items:center;justify-content:space-between;gap:20px}.metric-bar b{color:var(--cyan);font-size:20px}.metric-bar>span{display:block;height:12px;background:#D8EEF8;border-radius:999px;margin-top:8px;overflow:hidden}.metric-bar i{display:block;height:100%;background:var(--aurora);border-radius:inherit}
+@media print{body{background:#fff}.slide{margin:0;width:100%;box-shadow:none;page-break-after:always}.credit{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
+`;
+  return docShell(c.title + ' — Aurora 발표자료', css, slides.join('\n'));
+}
+
 function renderPPT(design, c) {
   const t = design.tokens;
   const font = FONT_STACKS[t.font];
   const accent = t.secondary;
   const img = heroImage(c, t);
+  if (design.layout === 'arctic') return renderAuroraPPT(design, c);
   const infoRows = [
     c.date && `<div class="row"><span class="k">📅 날짜</span><span>${esc(c.date)}</span></div>`,
     c.place && `<div class="row"><span class="k">📍 장소</span><span>${esc(c.place)}</span></div>`,
@@ -413,6 +671,38 @@ body { background: #555; font-family: ${font}; }
   font-weight: 700; font-size: 19px; margin-bottom: 24px; width: fit-content; }
 .row .k { color: ${accent}; }`;
     deco = `<div class="sidebar"></div>`;
+  } else if (design.layout === 'arctic') {
+    css += `
+.slide { align-items: flex-start; background-image: radial-gradient(circle at 14% 14%, rgba(36,135,184,.07) 0 2px, transparent 3px), radial-gradient(circle at 82% 82%, rgba(85,184,154,.08) 0 2px, transparent 3px); background-size: 38px 38px, 52px 52px; }
+.slide h1, .slide h2 { color: ${t.primary}; font-weight: 800; }
+.slide.cover h1 { font-size: 78px; line-height: 1.08; }
+.badge { color: ${accent}; font-weight: 800; font-size: 17px; letter-spacing: .12em; margin-bottom: 20px; }
+.slide h2 { font-size: 44px; margin-bottom: 32px; }
+.row { align-items: center; background: #eff8fc; border-left: 4px solid ${t.primary}; border-radius: 0 14px 14px 0; padding: 16px 20px; margin: 10px 0; font-size: 22px; }
+.row .k { color: ${t.primary}; min-width: 130px; }
+.desc { max-width: 760px; padding: 8px 22px; border-left: 3px solid ${accent}; }
+.desc p { font-size: 24px; line-height: 1.75; margin: 18px 0; }
+.coverimg { width: 42%; border-left: 5px solid ${t.primary}; border-radius: 0 0 0 72px; box-shadow: -16px 0 40px rgba(36,135,184,.12); }
+.pagenum { color: ${t.primary}; }
+.arctic-mark { position:absolute; right:48px; top:34px; color:${accent}; font-size:22px; opacity:.65; }`;
+    deco = `<div class="arctic-mark">✳</div>`;
+  } else if (design.layout === 'winterland') {
+    css += `
+.slide { align-items: flex-start; background: ${t.bg}; }
+.slide h1, .slide h2 { color: ${t.primary}; font-family: Georgia, 'Noto Serif KR', serif; }
+.slide.cover h1 { font-size: 68px; line-height: 1.12; max-width: 620px; }
+.slide h2 { font-size: 46px; font-weight: 600; padding-bottom: 16px; border-bottom: 1px solid ${t.primary}55; }
+.badge { color: ${accent}; font-family: Georgia, serif; font-style: italic; font-size: 21px; letter-spacing: .04em; margin-bottom: 22px; }
+.row { background: #fff; border: 1px solid #e4e5dd; border-radius: 4px; padding: 15px 18px; margin: 10px 0; font-size: 23px; }
+.row .k { color: ${t.primary}; min-width: 130px; }
+.desc { columns: 2; column-gap: 48px; max-width: 1000px; }
+.desc p { font-size: 22px; line-height: 1.85; break-inside: avoid; margin: 0 0 20px; }
+.slide.cover.first { background: ${t.bg}; padding-top: 92px; }
+.slide.cover.first .coverimg { width: 45%; border-left: 0; border-radius: 0 0 0 120px; box-shadow: -24px 10px 48px rgba(40,84,70,.18); }
+.slide.cover.first:after { content:''; position:absolute; top:58px; left:90px; width:74px; height:3px; background:${accent}; }
+.pagenum { color: ${t.primary}; }
+.winter-mark { position:absolute; top:32px; right:44px; color:${accent}; font: italic 20px Georgia,serif; letter-spacing:.08em; }`;
+    deco = `<div class="winter-mark">WINTER · NOTES</div>`;
   } else { // corporate
     css += `
 .slide { align-items: flex-start; padding-top: 110px; }
@@ -437,9 +727,9 @@ body { background: #555; font-family: ${font}; }
       <h1>${esc(c.title)}</h1>
       ${c.date ? `<div class="sub">${esc(c.date)}${c.place ? ' · ' + esc(c.place) : ''}</div>` : ''}
       <div class="pagenum">1</div></section>`,
-    `<section class="slide">${deco}<h2>안내</h2>${infoRows || '<p class="sub">세부 정보가 입력되지 않았습니다.</p>'}
+    `<section class="slide">${deco}${design.layout === 'arctic' ? '<div class="badge">FIELD NOTES · 01</div>' : ''}<h2>안내</h2>${infoRows || '<p class="sub">세부 정보가 입력되지 않았습니다.</p>'}
       <div class="pagenum">2</div></section>`,
-    `<section class="slide">${deco}<h2>소개</h2><div class="desc">${paragraphs(c.desc) || '<p>설명이 입력되지 않았습니다.</p>'}</div>
+    `<section class="slide">${deco}${design.layout === 'arctic' ? '<div class="badge">HABITAT · 02</div>' : ''}<h2>소개</h2><div class="desc">${paragraphs(c.desc) || '<p>설명이 입력되지 않았습니다.</p>'}</div>
       <div class="pagenum">3</div></section>`,
     `<section class="slide cover">${deco}
       <h1>감사합니다</h1>
