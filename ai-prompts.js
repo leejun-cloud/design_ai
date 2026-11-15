@@ -19,7 +19,9 @@ function analyzeSystem(part) {
 ## 4. 만능 적용 공식 — 주제별 비주얼 소재 치환 매트릭스(표) + 아래에 "복사해서 쓰는 스타일 고정 프롬프트" 코드블록
 
 마지막 줄에 반드시 아래 JSON 한 줄을 덧붙인다(파싱용, 코드블록 없이):
-TOKENS:{"name":"디자인 이름(한글, 20자 이내)","primary":"#......","secondary":"#......","bg":"#......","text":"#......","font":"sans 또는 serif"}`;
+TOKENS:{"name":"디자인 이름(한글, 20자 이내)","primary":"#......","secondary":"#......","bg":"#......","text":"#......","font":"sans 또는 serif"}
+
+TOKENS 줄이 응답의 마지막 줄이어야 하며 그 뒤에 어떤 말도 덧붙이지 않는다. 파일 저장 시도, 도구 권한 요청, 사용자에게 질문 모두 금지 — 문서 본문만 출력한다.`;
 }
 
 function composeSystem(part) {
@@ -60,13 +62,14 @@ PPT 전용 규칙:
 - 등록/신청 성격이면 작동하는 폼(onsubmit alert)을 포함.`;
 }
 
-/* 분석 응답에서 TOKENS 줄 분리 */
+/* 분석 응답에서 TOKENS 줄 분리 — 모델이 뒤에 잡담을 덧붙여도 파싱 */
 function splitTokens(md) {
   let tokens = null, guideMd = md;
-  const tm = md.match(/TOKENS:(\{[\s\S]*?\})\s*$/);
-  if (tm) {
-    try { tokens = JSON.parse(tm[1]); } catch {}
-    guideMd = md.slice(0, tm.index).trim();
+  const matches = [...md.matchAll(/TOKENS:(\{[^\n]*\})/g)];
+  if (matches.length) {
+    const m = matches[matches.length - 1];
+    try { tokens = JSON.parse(m[1]); } catch {}
+    guideMd = md.slice(0, m.index).trim();
   }
   return { guideMd, tokens };
 }
@@ -88,4 +91,49 @@ function composeUser(guideMd, content, imageList) {
   return `[디자인가이드]\n${String(guideMd).slice(0, 40000)}\n\n[원고]\n${String(content).slice(0, 50000)}${imgDesc}\n\n위 디자인가이드를 충실히 구현한 완성 HTML을 출력해라.`;
 }
 
-module.exports = { analyzeSystem, composeSystem, splitTokens, cleanHtml, composeUser };
+/* ---------- URL 분석용: 페이지에서 디자인 이미지 수집 (Node 전용) ---------- */
+function extractImageCandidates(html, pageUrl) {
+  const found = [];
+  const seen = new Set();
+  const push = (u, score) => {
+    try {
+      const abs = new URL(u, pageUrl).href.split(' ')[0];
+      if (seen.has(abs) || !/\.(jpe?g|png|webp)(\?|$)/i.test(abs)) return;
+      if (/logo|icon|sprite|avatar|favicon|button/i.test(abs)) return;
+      seen.add(abs);
+      found.push({ url: abs, score });
+    } catch {}
+  };
+  // 1순위: og/twitter 대표 이미지
+  for (const m of html.matchAll(/(?:property|name)=["'](?:og|twitter):image(?::src)?["'][^>]*content=["']([^"']+)/gi)) push(m[1], 100);
+  for (const m of html.matchAll(/content=["']([^"']+)["'][^>]*(?:property|name)=["'](?:og|twitter):image/gi)) push(m[1], 100);
+  // 2순위: 페이지 주소 핵심 단어와 겹치는 본문 이미지 (관련 추천 썸네일 배제)
+  const slugWords = (pageUrl.split('/').pop() || '').toLowerCase().split(/[^a-z0-9가-힣]+/).filter(w => w.length > 3);
+  for (const m of html.matchAll(/<img[^>]+(?:src|data-src|data-original|data-lazy)=["']([^"'\s]+)/gi)) {
+    const u = m[1].toLowerCase();
+    const hits = slugWords.filter(w => u.includes(w)).length;
+    push(m[1], hits >= 2 ? 50 + hits : 1);
+  }
+  return found.sort((a, b) => b.score - a.score).map(f => ({ url: f.url, score: f.score }));
+}
+
+async function downloadPageImages(html, pageUrl, max = 3) {
+  const candidates = extractImageCandidates(html, pageUrl);
+  const picked = [];
+  for (const c of candidates.slice(0, 10)) {
+    if (picked.length >= max) break;
+    if (picked.length >= 1 && c.score <= 1) break; // 대표 이미지를 확보했으면 잡동사니 중단
+    try {
+      const r = await fetch(c.url, { headers: { 'user-agent': 'Mozilla/5.0', referer: pageUrl } });
+      if (!r.ok) continue;
+      const mt = (r.headers.get('content-type') || '').split(';')[0];
+      if (!/^image\/(jpeg|png|webp)$/.test(mt)) continue;
+      const buf = Buffer.from(await r.arrayBuffer());
+      if (buf.length < 15000 || buf.length > 8000000) continue; // 아이콘/초대형 배제
+      picked.push({ media_type: mt, data: buf.toString('base64'), bytes: buf.length, url: c.url });
+    } catch {}
+  }
+  return picked.sort((a, b) => b.bytes - a.bytes);
+}
+
+module.exports = { analyzeSystem, composeSystem, splitTokens, cleanHtml, composeUser, downloadPageImages };

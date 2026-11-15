@@ -8,11 +8,11 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { spawn } = require('child_process');
+const { spawn, execFile } = require('child_process');
 
 const ROOT = __dirname;
 const PORT = Number(process.argv[2]) || 8787;
-const { analyzeSystem, composeSystem, splitTokens, cleanHtml, composeUser } = require('./ai-prompts.js');
+const { analyzeSystem, composeSystem, splitTokens, cleanHtml, composeUser, downloadPageImages } = require('./ai-prompts.js');
 
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
@@ -47,6 +47,25 @@ function runClaude(systemPrompt, userPrompt, { allowRead = false } = {}) {
   });
 }
 
+/* 페이지 HTML 가져오기: curl 우선(봇 차단 우회), 실패 시 fetch */
+function curlGet(url) {
+  return new Promise((resolve, reject) => {
+    execFile('curl', ['-sL', '-m', '25',
+      '-A', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+      '-H', 'accept: text/html,application/xhtml+xml',
+      '-H', 'accept-language: ko-KR,ko;q=0.9,en;q=0.8', url],
+      { maxBuffer: 20 * 1024 * 1024 }, (err, stdout) => err ? reject(err) : resolve(stdout));
+  });
+}
+async function fetchPageHtml(url) {
+  try {
+    const html = await curlGet(url);
+    if (html && html.length > 500) return html;
+  } catch {}
+  const page = await fetch(url, { headers: { 'user-agent': 'Mozilla/5.0 (design-guide-analyzer)' } });
+  return page.text();
+}
+
 /* base64 이미지들을 임시 파일로 저장하고 경로 반환 */
 function saveTempImages(images) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'designai-'));
@@ -65,8 +84,13 @@ async function handleAi(body) {
     let { images, text, url, hint } = body;
     if (url && !text) {
       try {
-        const page = await fetch(url, { headers: { 'user-agent': 'Mozilla/5.0 (design-guide-analyzer)' } });
-        text = (await page.text()).slice(0, 60000);
+        const html = await fetchPageHtml(url);
+        text = html.slice(0, 60000);
+        // 페이지 속 디자인 미리보기 이미지를 내려받아 Claude가 직접 보게 한다
+        const pageImages = await downloadPageImages(html, url, 3);
+        console.log(`  URL에서 디자인 이미지 ${pageImages.length}장 수집: ${pageImages.map(i => i.url).join(', ')}`);
+        images = [...(images || []), ...pageImages];
+        if (pageImages[0]) body.previewImage = `data:${pageImages[0].media_type};base64,${pageImages[0].data}`;
       } catch (e) {
         text = `(페이지를 가져오지 못했습니다: ${e.message}) URL: ${url}`;
       }
@@ -75,12 +99,12 @@ async function handleAi(body) {
     const user = [
       imageFiles.length ? `먼저 Read 도구로 다음 디자인 원본 이미지 파일을 모두 열어 눈으로 분석해라:\n${imageFiles.join('\n')}\n` : '',
       hint ? `디자인 주제/의도: ${hint}\n` : '',
-      url ? `원본 URL: ${url}\n` : '',
+      url ? `원본 URL(참고 표기용 — 절대 접근하지 말 것): ${url}\n` : '',
       text ? `원본에서 추출한 내용:\n${String(text).slice(0, 60000)}` : '',
-      '\n위 원본을 분석해 지시된 구조의 상세 디자인가이드 md를 작성해라.',
+      '\n위에 제공된 이미지 파일과 텍스트만으로 분석해라. URL 접근, WebFetch, 추가 도구 권한 요청, 사용자에게 되묻기 모두 금지 — 자료가 부족해도 보이는 것에서 최대한 추정해 지시된 구조의 상세 디자인가이드 md를 완성하라.',
     ].filter(Boolean).join('\n');
     const md = await runClaude(analyzeSystem(part), user, { allowRead: imageFiles.length > 0 });
-    return splitTokens(md);
+    return { ...splitTokens(md), previewImage: body.previewImage || null };
   }
 
   if (mode === 'compose') {

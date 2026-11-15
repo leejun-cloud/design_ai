@@ -78,6 +78,10 @@ function sampleHtml(d) {
   return RENDERERS[d.part](d, SAMPLE_CONTENT);
 }
 function thumbHtml(d) {
+  if (d.previewUrl) {
+    // 원소스의 원본 미리보기 이미지 (원격 URL)
+    return `<div class="thumb thumb-src"><img src="${d.previewUrl}" loading="lazy" alt="${d.name} 원본"><div class="thumb-hint">원본 디자인 · 클릭해 크게 보기</div></div>`;
+  }
   if (d.hasPreview) {
     // 가져온 원본 디자인 모습 그대로 (IndexedDB에서 비동기 로드)
     return `<div class="thumb thumb-src"><img data-preview-id="${d.id}" alt="${d.name} 원본"><div class="thumb-hint">원본 디자인 · 클릭해 크게 보기</div></div>`;
@@ -220,15 +224,17 @@ const guideModal = document.getElementById('guideModal');
 function openGuide(design) {
   guideDesign = design;
   const t = design.tokens;
-  document.getElementById('guideTitle').textContent = design.hasPreview ? `${design.name} — 원본 디자인` : `${design.name} — 실물 미리보기`;
+  const hasOriginal = design.hasPreview || design.previewUrl;
+  document.getElementById('guideTitle').textContent = hasOriginal ? `${design.name} — 원본 디자인` : `${design.name} — 실물 미리보기`;
   document.getElementById('guideRef').textContent = design.ref || '사용자 등록 디자인';
   const frameEl = document.getElementById('guideFrame');
   const imgEl = document.getElementById('guidePreviewImg');
-  if (design.hasPreview) {
+  if (hasOriginal) {
     frameEl.classList.add('hidden');
     imgEl.classList.remove('hidden');
     imgEl.removeAttribute('src');
-    idbGet('preview-' + design.id, data => { if (data) imgEl.src = typeof data === 'string' ? data : URL.createObjectURL(data); });
+    if (design.previewUrl) imgEl.src = design.previewUrl;
+    else idbGet('preview-' + design.id, data => { if (data) imgEl.src = typeof data === 'string' ? data : URL.createObjectURL(data); });
   } else {
     frameEl.classList.remove('hidden');
     imgEl.classList.add('hidden');
@@ -546,8 +552,9 @@ document.getElementById('btnAnalyze').addEventListener('click', async () => {
       source = { type: 'url', url };
       payload.url = url;
     }
-    const { guideMd, tokens } = await callAI(payload, t =>
+    const { guideMd, tokens, previewImage } = await callAI(payload, t =>
       { impStatus.textContent = `⏳ Claude AI가 디자인 시스템을 정밀 분석하는 중… ${t} (보통 1~3분, 멈춘 게 아닙니다)`; });
+    if (previewImage && !pendingPreview) pendingPreview = previewImage; // URL 원본 미리보기
     fillRegisterFormAI(guideMd, tokens, source);
   } catch (err) {
     // AI 실패 → 기존 간이 분석으로 대체

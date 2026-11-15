@@ -4,7 +4,7 @@
  * 환경변수 ANTHROPIC_API_KEY 필요.
  */
 
-const { analyzeSystem, composeSystem, splitTokens, cleanHtml, composeUser } = require('../ai-prompts.js');
+const { analyzeSystem, composeSystem, splitTokens, cleanHtml, composeUser, downloadPageImages } = require('../ai-prompts.js');
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 const MODEL = process.env.AI_MODEL || 'claude-sonnet-5';
@@ -50,7 +50,11 @@ module.exports = async (req, res) => {
       if (url && !text) {
         try {
           const page = await fetch(url, { headers: { 'user-agent': 'Mozilla/5.0 (design-guide-analyzer)' } });
-          text = (await page.text()).slice(0, 60000);
+          const html = await page.text();
+          text = html.slice(0, 60000);
+          const pageImages = await downloadPageImages(html, url, 3);
+          images = [...(images || []), ...pageImages];
+          if (pageImages[0]) req.body.previewImage = `data:${pageImages[0].media_type};base64,${pageImages[0].data}`;
         } catch (e) {
           text = `(페이지를 가져오지 못했습니다: ${e.message}) URL: ${url}`;
         }
@@ -59,11 +63,11 @@ module.exports = async (req, res) => {
         ...imageBlocks(images),
         { type: 'text', text:
           (hint ? `디자인 주제/의도: ${hint}\n\n` : '') +
-          (url ? `원본 URL: ${url}\n\n` : '') +
+          (url ? `원본 URL(참고 표기용): ${url}\n\n` : '') +
           (text ? `원본에서 추출한 내용:\n${String(text).slice(0, 60000)}` : '위 이미지를 분석해줘.') },
       ];
       const md = await callClaude(apiKey, analyzeSystem(part), [{ role: 'user', content: parts }], 16000);
-      return res.status(200).json(splitTokens(md));
+      return res.status(200).json({ ...splitTokens(md), previewImage: req.body.previewImage || null });
     }
 
     if (mode === 'compose') {
