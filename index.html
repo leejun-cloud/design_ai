@@ -12,7 +12,7 @@
 <body>
 <header class="topbar">
   <h1>🎨 디자인 AI 스튜디오</h1>
-  <p>표준디자인을 고르고 내용만 넣으면, 같은 스타일의 결과물이 바로 나옵니다</p>
+  <div id="topbarTagline"></div>
 </header>
 
 <!-- 단계 표시줄 -->
@@ -100,28 +100,39 @@
     </div>
   </section>
 
-  <!-- STEP 3: 내용 입력 -->
+  <!-- STEP 3: 내용 입력 (단순화 — 자료 붙여넣기/파일 하나로) -->
   <section class="panel hidden" id="panel3">
-    <h2>내용을 입력하세요</h2>
+    <h2>자료를 입력하세요</h2>
     <p class="hint">선택한 표준디자인: <strong id="chosenDesignName"></strong></p>
-    <div class="form-grid content-form">
-      <label>제목 <input type="text" id="cTitle" placeholder="비워두면 원고 첫 줄/PPT 표지에서 자동으로 가져옵니다"></label>
-      <label>부제목 <input type="text" id="cSubtitle" placeholder="예: 함께 만드는 하모니"></label>
-      <label>날짜 <input type="text" id="cDate" placeholder="예: 2026년 11월 21일 (토) 오후 7시"></label>
-      <label>장소 <input type="text" id="cPlace" placeholder="예: 소망홀 대강당"></label>
-      <label class="full">원고 통째로 붙여넣기 <textarea id="cDesc" rows="12" placeholder="강의 원고·행사 안내문·제안서 내용을 통째로 붙여넣으세요. 첫 줄이 제목이 되고, AI가 알아서 섹션을 나눠 디자인가이드대로 구성합니다. PPT(.pptx)·워드(.docx) 파일을 올려도 됩니다."></textarea></label>
-      <p class="hint full">수치 그래픽이 필요하면 `참여율: 78%`처럼 항목과 수치를 한 줄에 적어주세요. 입력된 값만 시각화합니다.</p>
-      <label>주최/문의 <input type="text" id="cHost" placeholder="예: 문화기획팀 (02-1234-5678)"></label>
-      <label id="ctaWrap" class="hidden">버튼 문구 (랜딩용) <input type="text" id="cCta" placeholder="예: 지금 신청하기"></label>
-      <label class="full">📎 자료 업로드 — PPTX·원고·이미지를 함께 넣을 수 있습니다 (.pptx, .docx, .txt, .md, 사진)
-        <input type="file" id="cFiles" multiple accept="image/*,.txt,.md,.pptx,.docx,text/plain,text/markdown,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
-      </label>
+
+    <div class="content-form">
+      <div class="dropzone" id="dropzone">
+        <textarea id="cDesc" rows="10" placeholder="여기에 전체 내용을 통째로 붙여넣으세요 — 강의 원고, 행사 안내문, 제안서 등 무엇이든 좋습니다.&#10;첫 줄이 제목이 되고, AI가 알아서 제목·날짜·장소·섹션을 읽어내 디자인가이드대로 구성합니다.&#10;&#10;또는 이 영역에 파일을 끌어다 놓아도 됩니다 (PPT·워드·사진 여러 장 가능)."></textarea>
+        <div class="dropzone-foot">
+          <button type="button" class="btn" id="btnPickFiles">📎 파일 선택 (PPT·워드·사진)</button>
+          <span class="hint" style="margin:0;">또는 파일을 이 안에 끌어다 놓으세요</span>
+        </div>
+        <input type="file" id="cFiles" class="hidden" multiple accept="image/*,.txt,.md,.pptx,.docx,text/plain,text/markdown,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+      </div>
       <div class="full file-list hidden" id="fileList"></div>
-      <p class="hint full" id="imageStatus">이미지가 없으면 주제에 맞는 공개 라이선스 이미지를 찾아 자동으로 배치하고 슬라이드에 출처를 표시합니다.</p>
-      <label class="full">🔗 참고 링크 — 한 줄에 하나씩 (결과물에 링크로 들어갑니다)
-        <textarea id="cLinks" rows="2" placeholder="https://example.com/신청폼&#10;https://example.com/소개"></textarea>
-      </label>
+      <p class="hint" id="imageStatus">사진이 없으면 주제에 맞는 공개 라이선스 이미지를 찾아 자동으로 배치합니다.</p>
+
+      <details class="advanced-box">
+        <summary>세부 정보 직접 입력 (선택 — 안 채우면 AI가 자료에서 읽어냅니다)</summary>
+        <div class="form-grid" style="margin-top:14px;">
+          <label>제목 <input type="text" id="cTitle" placeholder="비워두면 자료에서 자동으로 가져옵니다"></label>
+          <label>부제목 <input type="text" id="cSubtitle" placeholder="예: 함께 만드는 하모니"></label>
+          <label>날짜 <input type="text" id="cDate" placeholder="예: 2026년 11월 21일 (토) 오후 7시"></label>
+          <label>장소 <input type="text" id="cPlace" placeholder="예: 소망홀 대강당"></label>
+          <label>주최/문의 <input type="text" id="cHost" placeholder="예: 문화기획팀 (02-1234-5678)"></label>
+          <label id="ctaWrap" class="hidden">버튼 문구 (랜딩용) <input type="text" id="cCta" placeholder="예: 지금 신청하기"></label>
+          <label class="full">🔗 참고 링크 — 한 줄에 하나씩
+            <textarea id="cLinks" rows="2" placeholder="https://example.com/신청폼&#10;https://example.com/소개"></textarea>
+          </label>
+        </div>
+      </details>
     </div>
+
     <div class="form-actions">
       <button class="btn primary big" id="btnGenerate">✨ 생성하기</button>
       <button class="btn ghost" id="btnBack2">← 디자인 다시 선택</button>
@@ -175,6 +186,7 @@
   </div>
 </div>
 
+<script src="ai-text-loading.js"></script>
 <script src="vendor/jszip.min.js"></script>
 <script src="vendor/pptxgen.bundle.js"></script>
 <script src="templates.js"></script>

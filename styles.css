@@ -134,3 +134,46 @@ main { max-width: 1060px; margin: 0 auto; padding: 32px 20px 80px; }
 .thumb-src { display: flex; align-items: center; justify-content: center; background: #0f172a; }
 .thumb-src img { width: 100%; height: 100%; object-fit: contain; }
 #guidePreviewImg { width: 100%; display: block; max-height: 70vh; object-fit: contain; background: #0f172a; }
+
+/* AI 텍스트 로딩 효과 (Kokonut UI 이식, MIT) — 헤더 안내 문구 */
+@keyframes aitl-wave { 50% { opacity: .3; } }
+@keyframes aitl-enter {
+  from { opacity: 0; transform: translateY(8px); filter: blur(4px); }
+  to   { opacity: 1; transform: translateY(0);   filter: blur(0); }
+}
+@keyframes aitl-exit {
+  from { opacity: 1; transform: translateY(0);    filter: blur(0); }
+  to   { opacity: 0; transform: translateY(-6px); filter: blur(3px); }
+}
+.aitl { display: flex; justify-content: center; margin-top: 10px; }
+/* 들어오는 단어와 나가는 단어가 같은 칸을 써서 줄바꿈·흔들림이 없다 */
+.aitl-stage { display: grid; justify-items: center; }
+.aitl-stage > * { grid-area: 1 / 1; }
+.aitl-word { display: inline-flex; white-space: pre; font-size: 16px; font-weight: 700;
+  letter-spacing: -.01em; color: #e2e8f0; }
+.aitl-char { display: inline-block; animation: aitl-enter .28s cubic-bezier(.23, 1, .32, 1) both; }
+.aitl-wave { display: inline-block; animation: aitl-wave 1.6s ease-in-out infinite both; }
+.aitl-word.is-exiting { animation: aitl-exit .15s cubic-bezier(.23, 1, .32, 1) both; }
+.aitl-word.is-exiting .aitl-char { animation: none; }
+.aitl-sr { position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) {
+  .aitl-wave { animation: none; }
+  .aitl-char { animation: none; }
+  .aitl-word { animation: aitl-fade .28s both; }
+  .aitl-word.is-exiting { animation: aitl-fade .15s reverse both; }
+  @keyframes aitl-fade { from { opacity: 0; } to { opacity: 1; } }
+}
+
+/* STEP 3 단순화 — 드롭존 + 세부정보 접기 */
+.dropzone { border: 2px dashed #cbd5e1; border-radius: 16px; padding: 18px;
+  background: #f8fafc; transition: .15s; }
+.dropzone.is-dragging { border-color: #2563eb; background: #eff6ff; }
+.dropzone textarea { width: 100%; border: none; background: transparent; resize: vertical;
+  font-size: 15px; line-height: 1.7; font-family: inherit; padding: 6px; }
+.dropzone textarea:focus { outline: none; }
+.dropzone-foot { display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin-top: 10px; padding-top: 12px; border-top: 1px dashed #cbd5e1; }
+.advanced-box { margin-top: 18px; background: #fff; border: 1px solid #e2e8f0;
+  border-radius: 14px; padding: 16px 18px; }
+.advanced-box summary { cursor: pointer; font-weight: 600; color: #475569; font-size: 14px; }

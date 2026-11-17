@@ -1,5 +1,11 @@
 /* app.js — 4단계 마법사 로직 + 표준디자인 등록(localStorage) */
 
+aiTextLoading(document.getElementById('topbarTagline'), [
+  '디자인 샘플을 클릭하세요',
+  '원하는 자료를 올려보세요',
+  '좋은 디자인이 나옵니다',
+], { interval: 2200, label: '표준디자인을 고르고 자료를 올리면, 같은 스타일의 결과물이 바로 나옵니다' });
+
 const PART_NAMES = { ppt: 'PPT', poster: '포스터', landing: '랜딩페이지' };
 const STORE_KEY = 'designai_custom_designs_v1';
 
@@ -717,8 +723,8 @@ async function extractPptxContent(file) {
   }
 }
 
-document.getElementById('cFiles').addEventListener('change', e => {
-  for (const file of e.target.files) {
+function handleIncomingFiles(files) {
+  for (const file of files) {
     if (file.type.startsWith('image/')) {
       state.sourceSections = [];
       resizeImageFile(file, dataUrl => { if (dataUrl) { state.images.push(dataUrl); state.imageCredits.push(null); } renderFileList(); });
@@ -759,7 +765,25 @@ document.getElementById('cFiles').addEventListener('change', e => {
       fr.readAsText(file);
     }
   }
+}
+
+document.getElementById('cFiles').addEventListener('change', e => {
+  handleIncomingFiles(e.target.files);
   e.target.value = '';
+});
+document.getElementById('btnPickFiles').addEventListener('click', () => document.getElementById('cFiles').click());
+
+/* 자료 입력창에 파일을 끌어다 놓기 */
+const dropzone = document.getElementById('dropzone');
+['dragenter', 'dragover'].forEach(ev => dropzone.addEventListener(ev, e => {
+  e.preventDefault(); dropzone.classList.add('is-dragging');
+}));
+['dragleave', 'drop'].forEach(ev => dropzone.addEventListener(ev, e => {
+  e.preventDefault();
+  if (ev === 'drop' || !dropzone.contains(e.relatedTarget)) dropzone.classList.remove('is-dragging');
+}));
+dropzone.addEventListener('drop', e => {
+  if (e.dataTransfer && e.dataTransfer.files.length) handleIncomingFiles(e.dataTransfer.files);
 });
 
 document.getElementById('cDesc').addEventListener('input', () => { state.sourceSections = []; });
