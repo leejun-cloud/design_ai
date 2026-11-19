@@ -101,9 +101,18 @@ async function runCodexImages(prompts) {
   for (let i = 0; i < batches.length; i += 2) {
     await Promise.all(batches.slice(i, i + 2).map(b => runCodexBatch(b.prompts, dir, b.start)));
   }
+  const missing = i => !fs.existsSync(path.join(dir, `gen-${i + 1}.png`)) || fs.statSync(path.join(dir, `gen-${i + 1}.png`)).size < 10000;
+  // 실패분 1회 재시도 (개별 호출, 2개 병렬)
+  const retry = prompts.map((pr, i) => ({ pr, i })).filter(x => missing(x.i)).slice(0, 4);
+  if (retry.length) {
+    console.log(`  삽화 ${retry.length}장 재시도…`);
+    for (let i = 0; i < retry.length; i += 2) {
+      await Promise.all(retry.slice(i, i + 2).map(x => runCodexBatch([x.pr], dir, x.i + 1)));
+    }
+  }
   return prompts.map((_, i) => {
     const f = path.join(dir, `gen-${i + 1}.png`);
-    if (!fs.existsSync(f) || fs.statSync(f).size < 10000) return null;
+    if (missing(i)) return null;
     return 'data:image/png;base64,' + fs.readFileSync(f).toString('base64');
   });
 }
