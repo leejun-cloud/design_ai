@@ -74,8 +74,12 @@ module.exports = async (req, res) => {
       const { guideMd, content, imageList } = req.body;
       if (!guideMd || !content) return res.status(400).json({ error: '가이드와 원고가 필요합니다.' });
       const user = composeUser(guideMd, content, imageList);
-      const html = await callClaude(apiKey, composeSystem(part), [{ role: 'user', content: user }], 60000);
-      return res.status(200).json({ html: cleanHtml(html) });
+      let html = cleanHtml(await callClaude(apiKey, composeSystem(part), [{ role: 'user', content: user }], 60000));
+      // Vercel에는 codex가 없어 AI 삽화 토큰은 제거 (그라데이션 폴백이 대신 보임)
+      html = html.replace(/<!--GEN_IMAGES:[\s\S]*?-->/, '')
+                 .replace(/url\((['"]?)\{\{GEN_IMAGE_\d+\}\}\1\)/g, 'none')
+                 .replace(/\{\{GEN_IMAGE_\d+\}\}/g, '');
+      return res.status(200).json({ html });
     }
 
     return res.status(400).json({ error: 'unknown mode' });

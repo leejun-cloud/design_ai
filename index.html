@@ -43,6 +43,11 @@
         <strong>랜딩페이지</strong>
         <small>바로 배포 가능한 웹페이지 1개</small>
       </button>
+      <button class="part-card" data-part="doc">
+        <span class="part-icon">📄</span>
+        <strong>문서 (강의안·기획서·보고서)</strong>
+        <small>자료를 주면 AI가 문서를 직접 집필 — A4 인쇄형</small>
+      </button>
     </div>
   </section>
 
@@ -115,7 +120,7 @@
         <input type="file" id="cFiles" class="hidden" multiple accept="image/*,.txt,.md,.pptx,.docx,text/plain,text/markdown,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
       </div>
       <div class="full file-list hidden" id="fileList"></div>
-      <p class="hint" id="imageStatus">사진이 없으면 주제에 맞는 공개 라이선스 이미지를 찾아 자동으로 배치합니다.</p>
+      <p class="hint" id="imageStatus">삽화·사진은 생성 중 Codex AI가 디자인가이드 화풍대로 직접 그려 넣습니다. 직접 올린 사진이 있으면 그것을 우선 사용합니다.</p>
 
       <details class="advanced-box">
         <summary>세부 정보 직접 입력 (선택 — 안 채우면 AI가 자료에서 읽어냅니다)</summary>

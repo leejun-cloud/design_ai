@@ -33,6 +33,11 @@ const LAYOUTS = {
     { id: 'warmgrad', name: '웜 그라데이션 (오렌지·퍼플)' },
     { id: 'retro',    name: '레트로 프린트 (복고 전단)' },
   ],
+  doc: [
+    { id: 'lesson',   name: '강의안 (학습목표·단계표 교육 설계형)' },
+    { id: 'proposal', name: '기획서 (배경→전략→실행 제안형)' },
+    { id: 'report',   name: '보고서 (현황·성과·다음 단계)' },
+  ],
   landing: [
     { id: 'event',    name: '행사 랜딩 (다크 히어로+밝은 CTA)' },
     { id: 'sales',    name: '판매 랜딩 (세일즈 레터 구조)' },
@@ -119,6 +124,18 @@ const SEED_DESIGNS = [
     tokens: { primary: '#334155', secondary: '#a16207', bg: '#faf9f7', text: '#292524', font: 'serif' } },
 
 
+  { id: 'doc-lesson', part: 'doc', layout: 'lesson', name: '강의안 (교육 설계형)',
+    ref: '학교·교회학교·성인교육 표준 수업 지도안 양식',
+    guide: '학습목표 → 단계표(도입·전개·정리) → 활동 상세 → 평가·과제의 교육 설계 문서. 자료를 주면 AI가 강의안을 직접 집필한다.',
+    tokens: { primary: '#1d4ed8', secondary: '#f59e0b', bg: '#ffffff', text: '#1f2937', font: 'sans' } },
+  { id: 'doc-proposal', part: 'doc', layout: 'proposal', name: '기획서 (제안형)',
+    ref: '사업·행사·프로젝트 제안 표준 구조 (배경→목표→전략→실행→예산)',
+    guide: '문제 정의에서 실행 계획·예산까지 설득 흐름으로 집필하는 제안 문서. 간단한 아이디어 메모만 줘도 기획서로 완성한다.',
+    tokens: { primary: '#0f766e', secondary: '#ea580c', bg: '#ffffff', text: '#1f2937', font: 'sans' } },
+  { id: 'doc-report', part: 'doc', layout: 'report', name: '보고서 (운영·결과)',
+    ref: '기관·단체 운영 보고 표준 구조 (개요→현황→성과→다음 단계)',
+    guide: '기간·실적 자료를 주면 요약과 표 중심의 운영/결과 보고서로 집필한다.',
+    tokens: { primary: '#334155', secondary: '#b91c1c', bg: '#ffffff', text: '#1f2937', font: 'sans' } },
   /* ===== 링크에서 복제한 템플릿 (AI 정밀 분석) ===== */
   {"id":"url-winter-landscape","part":"ppt","layout":"editorial","name":"겨울 풍경 포토그래픽 미니멀","ref":"링크에서 디자인가이드 복제: https://www.slidemembers.com/en_US/view/PPT-Templates/winter-landscape-best-powerpoint-templates-20362","guide":"Three source 이미지를 확인했다. 이제 디자인 분석을 바탕으로 가이드 문서를 작성한다.","guideMd":"Three source 이미지를 확인했다. 이제 디자인 분석을 바탕으로 가이드 문서를 작성한다.\n\n# 디자인 가이드 — Frozen Serenity (겨울 풍경 포토그래픽 미니멀)\n\n## 1. 전체 디자인 시스템\n\n### 1.1 핵심 디자인 철학\n\n1. **포토그래픽 리얼리즘 우선 (Photo-First)** — 디자인 요소(도형, 아이콘, 패턴)를 거의 배제하고, 고해상도 실사 풍경 사진 자체가 배경이자 주인공이 되는 구조. 그래픽은 사진의 분위기를 해치지 않는 최소한의 텍스트 레이어로만 개입한다.\n2. **차가운 단색조의 정서적 일관성 (Monochromatic Cool Palette)** — 블루~그레이~화이트의 저채도 한색 계열로 전 슬라이드를 통일, \"겨울의 고요함\"이라는 단일 감정을 끝까지 유지한다. 색은 장식이 아니라 분위기 전달 도구.\n3. **세리프 타이포의 고급 대비 (Elegant Serif Overlay)** — 사진 위에 얇고 우아한 세리프체(Georgia류)를 크게 올려, 거칠고 차가운 자연 이미지와 섬세하고 따뜻한 손글씨 느낌의 타이포를 대비시켜 \"다큐멘터리+에디토리얼\" 톤을 만든다.\n4. **여백과 프레임의 절제된 레이어 깊이감** — 전체 슬라이드를 얇은 외곽 프레임(테두리)으로 감싸고, 내부에는 사진-텍스트 두 레이어만 존재. 장식 요소를 더하지 않음으로써 \"잡지 화보\" 같은 공백의 힘을 사용한다.\n\n### 1.2 컬러 팔레트 및 그라데이션 공식\n\n| 구분 | 컬러명 | HEX | RGB | 적용 영역 및 역할 |\n|---|---|---|---|---|\n| Primary | 글레이셜 블루 | #3E6B8A | rgb(62,107,138) | 얼음/호수 표면의 중간톤, 섬네일 배경색, 포인트 컬러 |\n| Primary Dark | 딥 나이트 블루 | #16222E | rgb(22,34,46) | 얼어붙은 호수 하단부, 그림자 영역, 저대비 텍스트 배경 |\n| Secondary | 세이지 그린 | #7D9A7E | rgb(125,154,126) | \"Welcome\" 같은 보조 라벨 텍스트, 포인트 악센트 컬러 |\n| Neutral Light | 오프화이트 미스트 | #ECEFEE | rgb(236,239,238) | 간지/본문 슬라이드 배경, 여백 영역 |\n| Neutral Mid | 소프트 그레이 | #5B6560 | rgb(91,101,96) | 본문 슬라이드 타이틀 텍스트, 중립 아이콘 |\n| Accent | 퓨어 화이트 | #FFFFFF | rgb(255,255,255) | 표지 타이틀 텍스트, 하이라이트, 프레임 보더 |\n| Accent (텍스트 보조) | 라이트 그레이 | #D8DEE2 | rgb(216,222,226) | 본문 캡션(Lorem ipsum) 텍스트, 저강조 정보 |\n\n**시그니처 그라데이션 공식**: 표지/간지 사진 위에는 실제 \"그라데이션 오버레이\"보다는 **사진 자체의 자연광 그라데이션**(상단 하늘의 연한 밝은 블루 #C9D6DD → 중단 설산의 중간 톤 → 하단 얼음 호수의 짙은 네이비 #16222E)을 그대로 활용. 디자인 상 인위적 오버레이를 추가할 경우:\n`background: linear-gradient(180deg, rgba(201,214,221,0.15) 0%, rgba(22,34,46,0.55) 100%)` — 사진 위 상단은 거의 투명, 하단으로 갈수록 짙은 네이비 55% 오버레이를 깔아 하단 텍스트(캡션) 가독성을 확보한다.\n\n**텍스트 가독성 오버레이 공식**: 타이틀이 올라가는 영역(사진 중앙~하단 1/3)에는 `rgba(22,34,46,0.25)` 수준의 약한 반투명 다크 레이어를 국소적으로 깔아 흰색 세리프 타이틀의 대비를 높인다(자연광이 밝은 경우에만 적용, 과하게 어둡지 않게).\n\n### 1.3 타이포그래피 시스템\n\n| 위계 요소 | 원본 폰트 | 한글 대체 추천 | 크기 | 굵기·스타일 규칙 |\n|---|---|---|---|---|\n| 메인 타이틀 (표지/간지) | Georgia (세리프) | 리디바탕, 마루 부리, 조선일보명조 | 72~96pt | Regular, 자간 넓게(+20~40), 전체 폭의 70~85% 차지하도록 초대형 배치. 사진 위 화이트 또는 소프트 그레이 |\n| 서브 레이블 (예: \"Welcome\") | Georgia Italic-like | 마루 부리 Light | 22~26pt | Regular, 세이지 그린 포인트 컬러, 타이틀 바로 위 소배치, 자간 넓게 |\n| 소제목 (본문 슬라이드 타이틀) | Georgia | 리디바탕 | 44~56pt | Regular, 소프트 그레이(#5B6560), 좌측 정렬 |\n| 본문/캡션 (Lorem ipsum류) | Calibri | Pretendard, 노토산스 | 14~16pt | Regular, 행간 1.6~1.8 넉넉하게, 라이트 그레이 또는 반투명 화이트, 우측 정렬 또는 좌측 정렬 혼용 |\n| 마이크로 텍스트 (로고/워터마크) | Fave Script Pro (필기체) + Calibri | 나눔손글씨 + Pretendard | 10~12pt | 로고 옆 보조 텍스트, 최하단 중앙 배치 |\n\n**조형 규칙**: 메인 타이틀은 항상 사진의 수평선(지평선/수평선) 근처에 겹쳐 배치하여 \"자연 배경 위에 글자가 떠 있는\" 레이어 깊이감을 만든다. 서브 레이블(Welcome)과 메인 타이틀은 수직으로 밀착 배치(간격 0~10pt)하고, 본문 캡션은 타이틀과 충분한 여백(80~120pt)을 두어 시각적 위계를 분리한다. 타이틀 하단에 얇은 1px 디바이더 라인(#D8DEE2)을 삽입해 캡션 블록과의 경계를 표시하는 것도 허용되는 변형.\n\n## 2. 사진과 그래픽의 조화 원칙\n\n- **피사체 분리**: 인물/사물이 들어간 사진(예: 바위 위에 선 등산객)은 피사체를 프레임의 좌측 1/3 또는 우측 1/3에 배치하고, 텍스트는 반드시 반대편 여백에 둔다(사진-텍스트 좌우 분할 구도).\n- **마스킹/크롭**: 표지성 풍경 사진은 크롭 없이 풀블리드(bleed)로 16:9 전체를 채우며, 본문/간지형 사진은 명확한 사각형 틀(얇은 1px 외곽선 또는 그림자 없는 플랫 크롭)로 박스 처리해 \"액자\" 느낌을 준다.\n- **오버레이 기법**: 밝은 사진(하늘, 눈) 위에 화이트 텍스트를 올릴 때는 로컬 다크 그라디언트(상단 1.2 공식)를 적용하고, 어두운 사진(그림자, 밤) 위에는 오버레이 없이 그대로 화이트 텍스트를 사용한다.\n- **가독성 확보**: 캡션/본문 텍스트는 항상 사진에서 가장 톤이 균일하고 디테일이 적은 영역(예: 얼어붙은 호수의 매끈한 표면)에 배치해 텍스트 뒤 노이즈를 최소화한다.\n- **여백 프레임**: 모든 슬라이드 외곽에 8~12px 두께의 오프화이트(#ECEFEE) 여백 프레임을 둘러, 사진이 화면 끝까지 닿지 않고 \"작품처럼 액자화\"된 느낌을 유지한다(표지 제외 가능).\n\n## 3. 페이지별 구성요소 및 상세 배치 설계도\n\n**캔버스 기준: 1280×720px (16:9), 외곽 여백 프레임 10px**\n\n### Master 1 — 표지 (Cover / Title Slide)\n- 레이어 순서: ① 풀블리드 풍경사진(배경, z=0) ② 하단 로컬 다크 오버레이(z=1) ③ 메인 타이틀 \"Winter Landscape.\"(z=2) ④ 우하단 본문 캡션 4줄(z=3) ⑤ 최하단 중앙 로고(z=4)\n- 메인 타이틀: x=60px, y=200px(수직 중앙보다 약간 위, 수평선과 겹침), 폭 900px, 폰트 Georgia 84pt, 컬러 #FFFFFF\n- 본문 캡션: x=560px, y=355px, 폭 340px, 우측 정렬, 폰트 14pt, 컬러 rgba(255,255,255,0.85), 행간 1.8\n- 로고: x=center, y=690px, 폭 120px\n\n### Master 2 — 간지/섹션 전환 (Section Divider, 좌우 분할형)\n- 레이어 순서: ① 배경 오프화이트(#ECEFEE, z=0) ② 좌측 세로형 사진 박스(z=1, 플랫 크롭 액자) ③ 우측 텍스트 블록(z=2)\n- 사진 박스: x=85px, y=85px, 폭 420px, 높이 550px (세로 비율 사진, 플랫 테두리 없음, 그림자 없음)\n- 서브 레이블 \"Welcome\": x=805px(우측 정렬 기준), y=185px, 폰트 Georgia 24pt, 컬러 #7D9A7E\n- 메인 타이틀: x=580px, y=215px, 폭 580px, 우측 정렬, 폰트 Georgia 68pt, 컬러 #5B6560\n- 디바이더 라인: x=665~1125px, y=472px, 두께 1px, 컬러 #D8DEE2\n- 본문 블록 1: y=382~425px / 디바이더 / 본문 블록 2: y=505~548px, 각 14pt 2줄, 컬러 #8A9492, 우측 정렬\n\n### Master 3 — 축소형 표지(요약 배너형, 썸네일/목차 겸용)\n- 레이어 순서: ① 풀블리드 사진(z=0, 상단 60% 비중 확대) ② 상단 밀착 타이틀(z=1) ③ 타이틀 하단 소형 캡션(z=2) ④ 하단 로고(z=3)\n- 메인 타이틀: x=40px, y=55px, 폭 전체의 90%, 폰트 Georgia 48pt(16:9 축소 버전이므로 본비율 대비 작게), 컬러 #FFFFFF, 좌측 정렬\n- 소형 캡션: x=center~우측, y=110px, 폭 200px, 폰트 7~8pt, 컬러 rgba(255,255,255,0.8)\n- 로고: x=center, y=170px, 폭 70px\n\n### Master 4 — 본문/콘텐츠 슬라이드 (추정 설계: 목차/리스트형)\n- 배경: 오프화이트(#ECEFEE) 또는 전면 풍경사진 + 전체 다크 오버레이(rgba(22,34,46,0.45))\n- 소제목: x=60px, y=60px, 폰트 Georgia 36pt, 컬러 #5B6560(라이트 배경) 또는 #FFFFFF(사진 배경)\n- 콘텐츠 영역: y=160px~640px, 2~3컬럼 그리드, 컬럼 간격 40px, 각 컬럼 상단에 소형 사진 썸네일(16:9 비율, 높이 180px) + 하단 14pt 캡션 2줄\n- 하단 우측 페이지 번호: x=1180px, y=680px, 10pt, #8A9492\n\n### Master 5 — 인용/임팩트 슬라이드 (대형 텍스트 단독형)\n- 배경: 전면 풍경사진 + 상하 그라데이션 오버레이(공식 1.2 그라데이션)\n- 중앙 대형 문구: 화면 중앙 정렬, 폭 800px, 폰트 Georgia Italic 느낌 42pt, 컬러 #FFFFFF, 행간 1.4\n- 출처/서브텍스트: 문구 하단 30px, 14pt, 세이지 그린(#7D9A7E)\n\n### Master 6 — 클로징/마무리 슬라이드\n- Master 1과 동일 레이아웃이되 타이틀을 \"Thank you.\" 류로 치환, 캡션 블록 생략 또는 연락처 정보로 대체, 로고 위치 동일 유지\n\n## 4. 만능 적용 공식\n\n### 주제별 비주얼 소재 치환 매트릭스\n\n| 원본 주제(겨울) | 치환 주제 예시 1(바다/여름) | 치환 주제 예시 2(도시/비즈니스) | 치환 주제 예시 3(숲/자연) |\n|---|---|---|---|\n| 설산+얼어붙은 호수 | 수평선+잔잔한 바다 | 스카이라인+유리 반사면 | 울창한 숲+안개 낀 호수 |\n| 등산객(피사체) | 서퍼/요트 위 사람 | 걷고 있는 직장인 실루엣 | 트레킹하는 사람 |\n| 글레이셜 블루 팔레트 | 터콰이즈/코발트 팔레트 | 스틸그레이/네이비 팔레트 | 포레스트그린/올리브 팔레트 |\n| \"Winter Landscape\" | \"Ocean Horizon\" | \"Urban Vision\" | \"Forest Whisper\" |\n| 세이지 그린 포인트 | 코랄/선셋 오렌지 포인트 | 앰버/골드 포인트 | 모스그린 포인트 |\n\n### 복사해서 쓰는 스타일 고정 프롬프트\n\n```\nCreate a 16:9 PowerPoint-style presentation slide design with the following fixed style rules:\n\n- Photography-first minimalism: a single full-bleed, high-resolution realistic landscape\n  photograph as the entire background. No decorative shapes, icons, or patterns overlaid.\n- Color mood: cool, desaturated monochromatic palette inspired by [glacial blue #3E6B8A,\n  deep night blue #16222E, off-white mist #ECEFEE, sage green accent #7D9A7E]. Replace with\n  a palette fitting the new topic, but keep the same cool-to-neutral, low-saturation,\n  single-mood logic.\n- Typography: one large elegant serif headline (Georgia-like, 70-90pt, wide letter spacing,\n  white or soft gray) placed overlapping the photo's horizon line. A small serif/italic\n  label word (e.g. \"Welcome\") in the sage-green accent color sits directly above the\n  headline. Secondary body captions in a humanist sans-serif (Calibri-like), small (14pt),\n  light gray or translucent white, generous 1.6-1.8 line height, placed in empty photo areas\n  with minimal visual noise.\n- Layout: either (a) full-bleed cover with headline over the horizon and caption block in\n  one bottom corner, or (b) split-layout divider with a flat-cropped vertical photo on one\n  side (no border radius, no shadow) and right-aligned text block with a thin 1px divider\n  line separating two caption paragraphs.\n- Framing: wrap the entire slide in a thin 8-12px off-white margin frame so the photo feels\n  gallery-framed rather than touching the canvas edge (cover slides may bleed full).\n- Overlay rule: apply a subtle local dark gradient (rgba(22,34,46,0.25-0.55)) only behind\n  text regions on bright photo areas to preserve legibility, never a full-slide tint.\n- Mood: serene, documentary-editorial, quiet, cold elegance. No clutter, no icons, no bright\n  saturated colors, no busy patterns.\n\nSubject to depict: [치환할 주제, 예: \"a calm ocean horizon at sunrise with a lone surfer\"]\nHeadline text: \"[새 타이틀]\"\nAccent label: \"[보조 라벨 단어]\"\n\nAbsolutely NO extra graphic elements beyond photo + typography, NO icons, NO illustrations.\n```","previewUrl":"https://imgscf.slidemembers.com/docs/1/1/947/winter_landscape_best_powerpoint_templates_946534.jpg","source":{"type":"url","url":"https://www.slidemembers.com/en_US/view/PPT-Templates/winter-landscape-best-powerpoint-templates-20362"},"tokens":{"primary":"#3E6B8A","secondary":"#7D9A7E","bg":"#ECEFEE","text":"#5B6560","font":"serif"}},
   {"id":"url-bakery-pitch","part":"ppt","layout":"editorial","name":"에스프레소 미니멀 베이커리 IR","ref":"링크에서 디자인가이드 복제: https://www.slidemembers.com/en_US/view/PPT-Templates/bakery-cafe-pitch-deck-ppt-template-%3F-restaurant-investor-presentation-design-ppt-slide-templates-21839","guide":"디자인 가이드를 파일로 저장하려 했으나 쓰기 권한이 없어 저장되지 않았다. 아래에 전체 내용을 바로 출력한다.","guideMd":"디자인 가이드를 파일로 저장하려 했으나 쓰기 권한이 없어 저장되지 않았다. 아래에 전체 내용을 바로 출력한다.\n\n---\n\n# 디자인 가이드 — 프리미엄 베이커리 카페 투자 유치(IR) 피치덱\n\n## 1. 전체 디자인 시스템\n\n### 1.1 핵심 디자인 철학\n\n1. **따뜻한 미니멀리즘(Warm Minimalism)** — 짙은 에스프레소 브라운과 아이보리/크림 배경의 대비만으로 고급스러움을 표현한다. 화려한 장식 대신 넉넉한 여백과 절제된 라인이 \"프리미엄 F&B 브랜드\"의 신뢰도를 만든다.\n2. **세리프×산세리프 이원 체계** — 타이틀/소제목은 클래식한 세리프(Didone 계열, 원본 Cinzel)로 브랜드 헤리티지를, 본문/데이터는 깔끔한 산세리프로 가독성과 현대적 신뢰감을 동시에 확보한다.\n3. **괄호형 프레임 모티프(\"brace frame\")** — 상단/하단 모서리에 위아래로 벌어지는 가는 실선 괄호(악보의 \"{\"를 눕힌 듯한 곡선)가 반복 등장해 슬라이드 전체를 하나의 \"무대\"처럼 감싼다. 전체 덱을 관통하는 시그니처 그래픽 요소다.\n4. **카드 기반 레이어 깊이감** — 모든 콘텐츠 블록은 둥근 모서리의 화이트/크림 카드 위에 얹히고, 연한 드롭섀도우로 배경에서 \"살짝 떠 있는\" 깊이를 준다. 아이콘은 브라운 그라데이션 원형 배지에 담아 카드 위에 다시 한 번 레이어를 쌓는다.\n\n### 1.2 컬러 팔레트 및 그라데이션 공식\n\n| 구분 | 컬러명 | HEX | RGB | 적용 영역 및 역할 |\n|---|---|---|---|---|\n| Primary | Espresso Dark Brown | #3B2A20 | 59,42,32 | 메인 타이틀, 핵심 바디 텍스트, 아이콘 배지 그라데이션 시작색 |\n| Primary Light | Roast Brown | #8A5A3C | 138,90,60 | 타이틀 그라데이션 끝색, 강조 숫자, 라인/보더 |\n| Secondary | Terracotta Accent | #C07A4A | 192,122,74 | 불릿 포인트 점, 보조 타이틀(\"Premium\", \"Bakery Cafe\"), 강조 텍스트 |\n| Neutral BG | Warm Ivory | #EFECE6 | 239,236,230 | 슬라이드 전체 배경 |\n| Neutral Card | Soft White | #FBFAF8 | 251,250,248 | 콘텐츠 카드/박스 배경 |\n| Neutral Text | Charcoal Gray | #4A4540 | 74,69,64 | 본문 텍스트, 캡션 |\n| Accent Muted | Taupe Gray | #A39E96 | 163,158,150 | 우상단 라벨, 보조 캡션, 테두리선 |\n\n**시그니처 그라데이션 공식**\n- 아이콘 배지(원형): `linear-gradient(135deg, #3B2A20 0%, #8A5A3C 100%)` — 좌상단 진한 에스프레소 → 우하단 밝은 로스트 브라운 대각선 135°. 내부 아이콘은 항상 흰색 라인 아이콘.\n- 타이틀 텍스트 그라데이션(표지 \"Premium\"): `linear-gradient(90deg, #8A5A3C 0%, #3B2A20 100%)` 수평 그라데이션을 텍스트에 클리핑.\n- **오버레이 공식(사진 위)**: 별도 색상 오버레이 없이 둥근 모서리(radius 24px)로 프레임을 잘라내고, 테두리에 1px 연한 베이지 라인(#D8D2C8)을 둘러 \"액자\" 느낌을 준다. 사진은 고명도 대비(어두운 배경 + 밝은 크림색 피사체)를 유지하는 원본으로 선택한다.\n\n### 1.3 타이포그래피 시스템\n\n| 위계 요소 | 원본 폰트 | 한글 대체 추천 | 크기 | 굵기·스타일 규칙 |\n|---|---|---|---|---|\n| 메인 타이틀(표지) | Cinzel (세리프) | 마루부리 Bold, Noto Serif KR Black | 44~54pt | Bold, 좁은 행간(1.05), 1단어만 그라데이션 강조 |\n| 섹션 타이틀(본문) | Cinzel | Noto Serif KR SemiBold | 28~32pt | Bold, 상단 괄호 프레임 바로 아래 좌측 정렬 |\n| 서브 라벨(알약 뱃지) | Cinzel Italic | 가는 고딕+이탤릭 대체 | 12~14pt | 이탤릭, 자간 넓게, 테두리만 있는 알약(pill) 안 배치 |\n| 소제목(카드/리스트 헤더) | Pretendard Bold | Pretendard Bold / 본고딕 Bold | 16~18pt | Bold, 불릿 도트(terracotta) + 텍스트 |\n| 본문(설명 문단) | Pretendard Regular | Pretendard Regular | 12~13pt | Regular, 행간 1.5, #4A4540 |\n| 핵심 데이터(숫자) | Cinzel/Playfair Display | Noto Serif KR Bold | 32~40pt | Bold 세리프, 아이콘 배지 아래 단독 배치 |\n| 마이크로 텍스트(캡션) | Pretendard Light | Pretendard Light | 9~10pt | 연한 회색(#A39E96), 우상단 라벨·하단 로고 |\n\n**조형 규칙**: 세리프 타이틀과 산세리프 본문이 같은 블록 안에서 수직으로 중첩될 때는 항상 \"세리프(크고 진하게) → 산세리프(작고 연하게)\" 순서로 쌓아 위계를 명확히 하고, 세리프 요소에는 알약형 아웃라인 배지를 동반시켜 \"라벨 → 타이틀\" 리듬을 만든다.\n\n## 2. 사진과 그래픽의 조화 원칙\n\n- **피사체 분리**: 라떼아트 컵, 크루아상 등 피사체는 항상 어두운 배경(짙은 원목 테이블, 다크 보케) 위에서 촬영된 이미지를 선택해, 동일 계열 브라운 팔레트 안에서도 피사체가 밝은 크림/화이트 톤으로 도드라지게 한다.\n- **마스킹**: 사진은 큰 둥근 사각형(radius 약 20~24px)으로 마스킹하고 전체 영역의 약 40~45%를 차지하도록 우측에 배치. 색보정 없이 원본 톤을 유지하되 얇은 베이지 보더로 \"액자\" 느낌을 준다.\n- **오버레이/가독성 확보**: 사진 위에 텍스트를 직접 올리지 않는다. 텍스트는 항상 사진 바깥 좌측 영역에 배치. 괄호 프레임이 사진 프레임을 가로질러 이어지며 사진과 텍스트 영역을 하나의 틀로 묶는다.\n- **아이콘과 사진의 위계 분리**: 원형 그라데이션 아이콘 배지는 사진보다 작고 카드 우상단에 고정 배치되어, 사진의 사실적 무드와 아이콘의 추상적 정보 전달을 분리한다.\n\n## 3. 페이지별 구성요소 및 상세 배치 설계도 (16:9, 1280×720 기준)\n\n### [Master 1] 표지(Cover)\n- 상단 중앙: \"PITCH DECK\" 마이크로 라벨(진회색, 자간 넓음, 10pt, 중앙정렬, y:32px)\n- 좌측 블록(x:80~450px):\n  - \"Premium\" 알약형 아웃라인 배지(x:80, y:118, w:135, h:38, border 1px #A39E96, radius 19px, 세리프 이탤릭, terracotta)\n  - 메인 타이틀 4줄 \"Premium / Bakery Cafe / Investment / Attraction IR\" (x:80, y:175~365, 세리프 Bold 44pt, 줄간격 56px, 첫 단어만 그라데이션)\n  - \"Bakery Cafe\" 서브라벨(x:80, y:410, 세리프 이탤릭, terracotta, 14pt)\n  - 캡션 \"A premium lifestyle that blends into everyday life\"(x:80, y:438, 산세리프 13pt, #4A4540)\n- 우측 블록: 사진 프레임(x:515, w:400, h:385, radius 24px) — 라떼아트+크루아상 사진, 상/하단에 브라켓 장식(폭 200px, 중앙 정렬)\n- 하단 중앙: \"Slide Members\" 로고 워드마크(y:510)\n- 배경: Warm Ivory 단색\n\n### [Master 2] 데이터 하이라이트(4분면 카드 + 우측 리스트)\n- 상단 괄호 프레임: 얇은 실선(1px, #A39E96)이 좌우 끝에서 둥글게 말려 올라가고, 중앙에서 브라켓(폭 60px)이 교차 — y:30~55px\n- 좌상단: 섹션 타이틀(세리프 Bold 30pt, #3B2A20, x:88, y:78)\n- 우상단: 보조 라벨(산세리프 Light, #A39E96, 12pt)\n- 좌측 2×2 카드 그리드(x:78~718, y:180~660): 카드 약 312×228px, radius 20px, 배경 #FBFAF8, 드롭섀도우(blur 20px, opacity 8%)\n  - 각 카드: 우상단 원형 그라데이션 아이콘 배지(지름 56px) → 좌하단 큰 숫자(세리프 Bold 36pt) → 설명 텍스트(산세리프 13pt)\n- 우측 패널(x:778~1225): \"INVESTMENT POINTS\" 알약 배지 → 3개 항목 세로 스택(점선 구분), 각 항목 terracotta 불릿 + Bold 소제목(15pt) + 2줄 설명(13pt)\n\n### [Master 3] 목차/섹션 간지(추정)\n- 표지와 동일한 괄호 프레임 + 알약 배지 시스템 유지\n- 좌측 큰 세리프 챕터 번호 + 세리프 타이틀, 우측 동일한 라운드 사진 프레임\n- 하단에 가는 가로선으로 구분된 목차 리스트(산세리프, 번호+타이틀)\n\n### [Master 4] 본문 비교/프로세스형(추정)\n- Master 2의 카드+리스트 좌우 2단 그리드 골격 유지, 카드 내부를 \"프로세스 단계\"나 \"비교 항목\"으로 치환\n- 아이콘 배지→숫자/타이틀→캡션의 3단 수직 구조��� 모든 본문 슬라이드의 고정 반복 패턴\n\n### [Master 5] 팀/조직 소개형(추정)\n- 원형 그라데이션 배지를 인물 사진 프레임으로 치환(원형 마스킹, 지름 ~120px)\n- 사진 아래 이름(세리프 Bold)+직책(산세리프 Light)을 \"숫자+캡션\" 패턴과 동일하게 적용\n\n### [Master 6] 클로징/연락처 슬라이드(추정)\n- Master 1의 좌우 반전 버전: 사진 좌측, 텍스트(감사 인사+연락처) 우측\n- 괄호 프레임과 로고 워드마크 하단 고정 배치 유지\n\n## 4. 만능 적용 공식\n\n### 주제별 비주얼 소재 치환 매트릭스\n\n| 산업/주제 | 표지 사진 소재 | 아이콘 배지 모티프 | 핵심 숫자 카드 라벨 예시 | 유지할 요소 |\n|---|---|---|---|---|\n| 베이커리 카페(원본) | 라떼아트+크루아상 | 상점/그래프/고객/파우치 | 매장 수, 매출, 재방문율, 투자금 | 브라운 팔레트, 세리프 타이틀, 괄호 프레임 |\n| 레스토랑/파인다이닝 | 플레이팅 요리 클로즈업 | 포크나이프/별점/테이블/영수증 | 좌석 수, 객단가, 재방문율, 매출 | 동일 |\n| 와인/주류 브랜드 | 와인잔+오크통 | 포도/병/잔/바렐 | 생산량, 빈티지 수, 수출국, 매출 | 동일(브라운→버건디로 색조 전환 가능) |\n| 호텔/리조트 | 조식 테이블+창밖 풍경 | 침대/별/위치핀/카드 | 객실 수, 점유율, 리뷰 점수, 매출 | 동일 |\n| 수제맥주/크래프트 | 맥주잔+홉 | 맥주잔/탱크/트럭/바코드 | 양조량, 출고처, 재구매율, 투자금 | 동일 |\n| 디저트/초콜릿 브랜드 | 디저트 플레이팅 | 케이크/하트/선물상자/지갑 | SKU 수, 월매출, 멤버십율, 투자금 | 동일 |\n\n### 복사해서 쓰는 스타일 고정 프롬프트\n\n```\nDesign a 16:9 PowerPoint slide in a \"Warm Espresso Minimalism\" pitch-deck style.\n\nPALETTE:\n- Background: warm ivory (#EFECE6)\n- Card/box background: soft white (#FBFAF8)\n- Primary text/title: espresso dark brown (#3B2A20)\n- Gradient accent (icon badges, title highlight): 135deg linear-gradient from #3B2A20 to #8A5A3C\n- Secondary accent (bullets, labels): terracotta (#C07A4A)\n- Muted caption/label color: taupe gray (#A39E96)\n\nTYPOGRAPHY:\n- Headlines: classic serif (Cinzel / Playfair Display style), bold, generous letter spacing\n- Subheads/pill badges: serif italic inside a thin-outline pill shape\n- Body copy & data labels: clean sans-serif (Pretendard/Inter style), regular weight, 1.5 line-height\n- Big stat numbers: bold serif, 32-40pt, paired with small sans-serif caption below\n\nSIGNATURE GRAPHIC MOTIF:\n- A thin 1px line \"brace frame\" (like a flattened curly bracket) arcing at the top and bottom edges of the slide, framing the whole composition\n- Rounded-corner photo frames (radius ~24px) with a thin beige border, placed on the right third of the slide\n- Circular gradient icon badges (56px diameter, white line icon inside) attached to the top-right corner of each content card\n\nLAYOUT RULES:\n- Generous whitespace, left-aligned text blocks\n- White rounded cards (radius 20px) with soft drop shadow (8% opacity, 20px blur) for all data/content blocks\n- Dashed divider lines (#D8D2C8) between stacked list items\n- Keep photography naturalistic (no color overlay), cropped into the rounded frame, subject on a dark background for contrast against the ivory page\n\nApply this style to a [여기에 주제/업종 입력] pitch deck slide, replacing photography subject and icon glyphs with [해당 업종에 맞는 소재], keeping every color, type, and layout rule identical.\n```","previewUrl":"https://imgscf.slidemembers.com/docs/1/2/1081/bakery_cafe_pitch_deck_ppt_template_restaurant_investor_presentation_design_ppt_slide_templates_1080480.jpg","source":{"type":"url","url":"https://www.slidemembers.com/en_US/view/PPT-Templates/bakery-cafe-pitch-deck-ppt-template-%3F-restaurant-investor-presentation-design-ppt-slide-templates-21839"},"tokens":{"primary":"#3B2A20","secondary":"#C07A4A","bg":"#EFECE6","text":"#4A4540","font":"serif"}},
@@ -159,6 +176,12 @@ const PART_STRUCTURES = {
     '구성(위→아래): 킥커(부제) → 제목 → 대표 이미지 → 설명 → 하단 정보(일시·장소·문의)',
     '대표 이미지: 포스터 높이의 20~26%, 배경 cover 방식',
     '하단 정보는 margin-top:auto로 항상 바닥에 붙임',
+  ],
+  doc: [
+    '캔버스: A4 세로(794×1123px 기준), 페이지 패딩 64×72px, 2~6페이지',
+    '구성: 표지/개요(제목·대상·일시·작성자) → 본문 섹션들(표 적극 사용) → 마무리/체크리스트',
+    '머리말 띠·섹션 라벨·표 머리행에 주색 적용, 본문은 잉크색 단정한 고딕',
+    'AI가 자료를 근거로 문서 본문을 직접 집필한다 (구조화·목표 문장화·단계 설계)',
   ],
   landing: [
     '구성: 히어로(제목+CTA) → 정보 영역 → 소개/본문 → 반복 CTA → 참고 링크 → 푸터',
@@ -261,6 +284,27 @@ const LAYOUT_SPECS = {
     '대표 이미지: 높이 20%, 3px 갈색 테두리',
   ],
   /* ---- 랜딩 ---- */
+  'doc:lesson': [
+    '표지/개요: 상단 주색 머리말 띠(과목·차시), 제목 32px/800, 메타 표(대상·시간·장소·강사)',
+    '학습목표: 번호 리스트 2~4개, 행동 동사로 끝나는 목표 문장',
+    '수업 단계표: 단계(도입/전개/정리) | 교수·학습 활동 | 시간 | 자료·준비물 4열 표, 머리행 주색',
+    '활동 상세: 단계별 소제목 + 발문 예시(인용 박스) + 유의점(보조색 라벨)',
+    '마무리: 평가 기준 체크리스트 + 과제 안내',
+  ],
+  'doc:proposal': [
+    '표지: 제목 36px/900 + 한 줄 핵심 제안 + 작성자/일자, 주색 포인트 바',
+    '배경·문제: 현황 2~3문단 + 핵심 문제 박스(보조색 테두리)',
+    '목표·전략: 목표 3개(숫자 카드) → 전략별 소제목+설명',
+    '실행 계획: 단계 | 내용 | 일정 | 담당 4열 표',
+    '예산·기대효과: 항목별 표 + 기대효과 불릿, 마지막 요청 사항 강조 박스',
+  ],
+  'doc:report': [
+    '머리말: 보고서명·기간·작성자 3단 정보 띠',
+    '개요: 핵심 요약 3~5줄 (리드 문단, 조금 큰 글자)',
+    '진행 현황: 항목 | 계획 | 실적 | 달성률 표, 달성률은 주색 강조',
+    '성과·이슈: 성과 불릿 + 이슈/리스크 박스(보조색)',
+    '다음 단계: 번호 리스트 + 일정, 하단 승인/확인란',
+  ],
   'landing:event': [
     '히어로: 대표 이미지 배경 + 어두운 오버레이(검정 62%→주색), 가운데 정렬, 제목 최대 76px/900',
     'CTA: 형광 노랑 알약 버튼, 검정 글자 — 어두운 배경과 최대 대비',
@@ -1091,7 +1135,44 @@ footer { text-align: center; padding: 40px 20px; font-size: 14px; opacity: .6; }
   return docShell(c.title, css, body);
 }
 
-const RENDERERS = { ppt: renderPPT, poster: renderPoster, landing: renderLanding };
+/* =====================================================
+ * 문서(A4) 미리보기 렌더러 — 썸네일/샘플용 간단 1페이지
+ * (실제 생성은 AI가 가이드대로 집필)
+ * ===================================================== */
+function renderDoc(design, c) {
+  const t = design.tokens;
+  const font = FONT_STACKS[t.font];
+  const rows = descLines(c.desc).slice(0, 3);
+  const css = `
+body { background: #555; font-family: ${font}; padding: 24px; }
+.page { width: 794px; max-width: 100%; aspect-ratio: 210/297; margin: 0 auto; background: ${t.bg};
+  color: ${t.text}; padding: 56px 64px; box-shadow: 0 4px 24px rgba(0,0,0,.35); box-sizing: border-box; }
+.band { background: ${t.primary}; color: #fff; padding: 10px 18px; font-weight: 800; font-size: 15px;
+  letter-spacing: .08em; margin: -56px -64px 36px; }
+h1 { font-size: 30px; color: ${t.primary}; margin-bottom: 8px; word-break: keep-all; }
+.meta { font-size: 13px; opacity: .7; margin-bottom: 26px; }
+h2 { font-size: 17px; color: ${t.primary}; border-left: 4px solid ${t.secondary}; padding-left: 10px;
+  margin: 24px 0 10px; }
+p, li { font-size: 13.5px; line-height: 1.8; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+th { background: ${t.primary}; color: #fff; padding: 8px; font-weight: 700; }
+td { border: 1px solid #e2e8f0; padding: 8px; }
+@media print { body { background: none; padding: 0; } .page { box-shadow: none; } }`;
+  const body = `<section class="page">
+    <div class="band">${esc(design.name)}</div>
+    <h1>${esc(c.title)}</h1>
+    <div class="meta">${[c.date, c.place, c.host].filter(Boolean).map(esc).join(' · ')}</div>
+    <h2>개요</h2>
+    ${rows.map(r => `<p>${esc(r)}</p>`).join('')}
+    <h2>${design.layout === 'lesson' ? '수업 단계' : design.layout === 'proposal' ? '실행 계획' : '진행 현황'}</h2>
+    <table><tr><th>구분</th><th>내용</th><th>${design.layout === 'report' ? '달성률' : '시간/일정'}</th></tr>
+    <tr><td>1단계</td><td>자료를 주면 AI가 이 표를 실제 내용으로 집필합니다</td><td>—</td></tr>
+    <tr><td>2단계</td><td>구조·목표 문장·세부 계획까지 자동 작성</td><td>—</td></tr></table>
+  </section>`;
+  return docShell(c.title + ' — 문서', css, body);
+}
+
+const RENDERERS = { ppt: renderPPT, poster: renderPoster, landing: renderLanding, doc: renderDoc };
 
 /* node 테스트용 (브라우저에서는 무시됨) */
 if (typeof module !== 'undefined') {

@@ -12,7 +12,7 @@ const { spawn, execFile } = require('child_process');
 
 const ROOT = __dirname;
 const PORT = Number(process.argv[2]) || 8787;
-const { analyzeSystem, composeSystem, splitTokens, cleanHtml, composeUser, downloadPageImages } = require('./ai-prompts.js');
+const { analyzeSystem, composeSystem, splitTokens, cleanHtml, composeUser, downloadPageImages, pptPlanSystem, pptStyleSystem, pptBatchSystem } = require('./ai-prompts.js');
 
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
@@ -22,9 +22,9 @@ const MIME = {
 };
 
 /* Claude CLI 실행: 프롬프트는 stdin, 결과는 stdout 텍스트 */
-function runClaude(systemPrompt, userPrompt, { allowRead = false } = {}) {
+function runClaude(systemPrompt, userPrompt, { allowRead = false, model = 'sonnet' } = {}) {
   return new Promise((resolve, reject) => {
-    const args = ['-p', '--output-format', 'text', '--model', 'sonnet',
+    const args = ['-p', '--output-format', 'text', '--model', model,
       '--max-turns', '12', '--append-system-prompt', systemPrompt];
     if (allowRead) args.push('--allowedTools', 'Read');
     const child = spawn('claude', args, {
@@ -77,6 +77,113 @@ function saveTempImages(images) {
   });
 }
 
+
+/* ---------- Codex CLI로 삽화 생성 (image_gen) ---------- */
+function runCodexBatch(prompts, dir, startIdx) {
+  return new Promise(resolve => {
+    const list = prompts.map((pr, i) =>
+      `${i + 1}) ${path.join(dir, `gen-${startIdx + i}.png`)} — ${pr}`).join('\n');
+    const prompt = `Use the image_gen tool to create ${prompts.length} separate images and save each as PNG at the exact absolute paths below. Absolutely NO text, NO lettering, NO watermark, NO logos in any image.\n\n${list}\n\nGenerate all and report the paths.`;
+    const child = spawn('codex', ['exec', '--skip-git-repo-check', '--sandbox', 'danger-full-access', prompt],
+      { cwd: dir, env: process.env, stdio: ['ignore', 'pipe', 'pipe'] });
+    const killer = setTimeout(() => { child.kill('SIGKILL'); resolve(); }, 900000); // 15분
+    child.on('error', () => { clearTimeout(killer); resolve(); });
+    child.on('close', () => { clearTimeout(killer); resolve(); });
+  });
+}
+
+async function runCodexImages(prompts) {
+  if (!prompts.length) return [];
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'designai-gen-'));
+  // 4장씩 묶어 병렬 2개까지
+  const batches = [];
+  for (let i = 0; i < prompts.length; i += 4) batches.push({ prompts: prompts.slice(i, i + 4), start: i + 1 });
+  for (let i = 0; i < batches.length; i += 2) {
+    await Promise.all(batches.slice(i, i + 2).map(b => runCodexBatch(b.prompts, dir, b.start)));
+  }
+  return prompts.map((_, i) => {
+    const f = path.join(dir, `gen-${i + 1}.png`);
+    if (!fs.existsSync(f) || fs.statSync(f).size < 10000) return null;
+    return 'data:image/png;base64,' + fs.readFileSync(f).toString('base64');
+  });
+}
+
+/* 생성 HTML의 GEN_IMAGE 토큰을 codex 삽화로 치환 (단일 패스 compose용) */
+async function applyGenImages(html) {
+  const m = html.match(/<!--GEN_IMAGES:(\[[\s\S]*?\])-->/);
+  let prompts = [];
+  if (m) { try { prompts = JSON.parse(m[1]).slice(0, 3); } catch {} }
+  if (prompts.length) {
+    console.log(`  Codex 삽화 ${prompts.length}장 생성 중…`);
+    const images = await runCodexImages(prompts);
+    images.forEach((data, i) => { if (data) html = html.split(`{{GEN_IMAGE_${i + 1}}}`).join(data); });
+  }
+  return html.replace(/<!--GEN_IMAGES:[\s\S]*?-->/, '')
+             .replace(/url\((['"]?)\{\{GEN_IMAGE_\d+\}\}\1\)/g, 'none')
+             .replace(/\{\{GEN_IMAGE_\d+\}\}/g, '');
+}
+
+/* ---------- PPT 고품질 파이프라인: 설계 → 스타일 → 배치 병렬 구현 → 삽화 ---------- */
+function parseJsonLoose(text) {
+  const t = text.replace(/```(?:json)?/g, '').trim();
+  const a = t.indexOf('{'), b = t.lastIndexOf('}');
+  return JSON.parse(t.slice(a, b + 1));
+}
+
+async function composePptPipeline({ guideMd, content }) {
+  // 1) 설계
+  console.log('  [1/4] 덱 설계 중…');
+  const planRaw = await runClaude(pptPlanSystem(),
+    `[디자인가이드]\n${String(guideMd).slice(0, 30000)}\n\n[원고]\n${String(content).slice(0, 50000)}`, { model: 'sonnet' });
+  const plan = parseJsonLoose(planRaw);
+  const slides = plan.slides || [];
+  if (!slides.length) throw new Error('덱 설계 실패');
+  // 삽화 토큰 배정 (최대 8)
+  const imagePrompts = [];
+  for (const sl of slides) {
+    if (sl.image && imagePrompts.length < 8) {
+      imagePrompts.push(String(sl.image));
+      sl.imageToken = `{{GEN_IMAGE_${imagePrompts.length}}}`;
+    }
+    delete sl.image;
+  }
+  console.log(`  설계 완료: ${slides.length}장, 삽화 ${imagePrompts.length}곳`);
+
+  // 2) 삽화는 지금부터 백그라운드로 (스타일·배치와 병렬)
+  const imagesPromise = imagePrompts.length ? runCodexImages(imagePrompts) : Promise.resolve([]);
+  if (imagePrompts.length) console.log(`  [2/4] Codex 삽화 ${imagePrompts.length}장 병렬 생성 시작`);
+
+  // 3) 공통 스타일
+  console.log('  [3/4] 디자인 시스템 CSS 구축 중…');
+  const styleOut = await runClaude(pptStyleSystem(),
+    `[디자인가이드]\n${String(guideMd).slice(0, 30000)}\n\n[덱 정보]\n${JSON.stringify(plan.deck || {})}\n총 ${slides.length}장, 마스터 구성: ${[...new Set(slides.map(x => x.master))].join(', ')}`,
+    { model: 'sonnet' });
+
+  // 4) 배치 구현 (6장씩, 병렬 3)
+  const batches = [];
+  for (let i = 0; i < slides.length; i += 6) batches.push(slides.slice(i, i + 6));
+  console.log(`  [4/4] 슬라이드 구현: ${batches.length}개 배치 병렬 진행`);
+  const results = new Array(batches.length);
+  for (let i = 0; i < batches.length; i += 3) {
+    await Promise.all(batches.slice(i, i + 3).map((batch, j) =>
+      runClaude(pptBatchSystem(),
+        `[공통 스타일+USAGE]\n${styleOut}\n\n[덱 공통]\n${JSON.stringify(plan.deck || {})} / 총 ${slides.length}장\n\n[이번 배치 슬라이드 설계]\n${JSON.stringify(batch, null, 1)}`,
+        { model: 'sonnet' })
+        .then(out => { results[i + j] = out.replace(/```(?:html)?/g, '').trim(); })
+    ));
+    console.log(`    배치 ${Math.min(i + 3, batches.length)}/${batches.length} 완료`);
+  }
+
+  // 5) 조립 + 삽화 주입
+  const title = (slides[0] && slides[0].title) || '프레젠테이션';
+  let html = `<!DOCTYPE html>\n<html lang="ko">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>${title}</title>\n${styleOut.replace(/<!--USAGE[\s\S]*?USAGE-->/, '')}\n<style>body{background:#555;}</style>\n</head>\n<body>\n${results.join('\n')}\n</body>\n</html>`;
+  const images = await imagesPromise;
+  images.forEach((data, i) => { if (data) html = html.split(`{{GEN_IMAGE_${i + 1}}}`).join(data); });
+  html = html.replace(/url\((['"]?)\{\{GEN_IMAGE_\d+\}\}\1\)/g, 'none').replace(/\{\{GEN_IMAGE_\d+\}\}/g, '');
+  console.log(`  완성: ${slides.length}장, 삽화 ${images.filter(Boolean).length}/${imagePrompts.length}장 주입`);
+  return { html };
+}
+
 async function handleAi(body) {
   const { mode, part } = body;
 
@@ -110,8 +217,17 @@ async function handleAi(body) {
   if (mode === 'compose') {
     const { guideMd, content, imageList } = body;
     if (!guideMd || !content) throw new Error('가이드와 원고가 필요합니다.');
-    const html = await runClaude(composeSystem(part), composeUser(guideMd, content, imageList));
-    return { html: cleanHtml(html) };
+    if (part === 'ppt') {
+      // 고품질 파이프라인: 설계 → 스타일 → 배치 병렬 구현 → Codex 삽화
+      try {
+        return await composePptPipeline({ guideMd, content });
+      } catch (e) {
+        console.log('  파이프라인 실패(' + e.message + ') — 단일 패스로 대체');
+      }
+    }
+    let html = cleanHtml(await runClaude(composeSystem(part), composeUser(guideMd, content, imageList)));
+    html = await applyGenImages(html);
+    return { html };
   }
 
   throw new Error('unknown mode');

@@ -6,7 +6,7 @@ aiTextLoading(document.getElementById('topbarTagline'), [
   '좋은 디자인이 나옵니다',
 ], { interval: 2200, label: '표준디자인을 고르고 자료를 올리면, 같은 스타일의 결과물이 바로 나옵니다' });
 
-const PART_NAMES = { ppt: 'PPT', poster: '포스터', landing: '랜딩페이지' };
+const PART_NAMES = { ppt: 'PPT', poster: '포스터', landing: '랜딩페이지', doc: '문서' };
 const STORE_KEY = 'designai_custom_designs_v1';
 
 const state = { part: null, design: null, resultHtml: null, resultContent: null, slideCount: 0, currentSlide: 0 };
@@ -93,7 +93,7 @@ function thumbHtml(d) {
     return `<div class="thumb thumb-src"><img data-preview-id="${d.id}" alt="${d.name} 원본"><div class="thumb-hint">원본 디자인 · 클릭해 크게 보기</div></div>`;
   }
   const html = sampleHtml(d).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
-  const W = { ppt: 1340, poster: 740, landing: 1320 }[d.part];
+  const W = { ppt: 1340, poster: 740, landing: 1320, doc: 900 }[d.part];
   const scale = (300 / W).toFixed(3);
   const style = `width:${W}px; height:${Math.round(W * 1.7)}px; transform:scale(${scale});`;
   return `<div class="thumb"><iframe loading="lazy" scrolling="no" tabindex="-1" style="${style}" srcdoc="${html}"></iframe><div class="thumb-hint">예시 렌더링 · 클릭하면 전체 보기</div></div>`;
@@ -194,7 +194,7 @@ function selectDesign(design) {
 async function callAI(payload, onTick) {
   const ctrl = new AbortController();
   const started = Date.now();
-  const killer = setTimeout(() => ctrl.abort(), 600000); // 10분 타임아웃
+  const killer = setTimeout(() => ctrl.abort(), 1800000); // 30분 타임아웃 (PPT 파이프라인+삽화 생성)
   const ticker = onTick ? setInterval(() => {
     const s = Math.round((Date.now() - started) / 1000);
     onTick(`${Math.floor(s / 60)}분 ${s % 60}초 경과`);
@@ -208,7 +208,7 @@ async function callAI(payload, onTick) {
       signal: ctrl.signal,
     });
   } catch (e) {
-    throw new Error(e.name === 'AbortError' ? '10분이 지나 중단했습니다' : e.message);
+    throw new Error(e.name === 'AbortError' ? '30분이 지나 중단했습니다' : e.message);
   } finally {
     clearTimeout(killer);
     if (ticker) clearInterval(ticker);
@@ -852,23 +852,7 @@ document.getElementById('btnGenerate').addEventListener('click', async () => {
   const button = document.getElementById('btnGenerate'), status = document.getElementById('imageStatus');
   button.disabled = true;
   try {
-    if (content.images.length < 2) {
-      status.textContent = '주제와 강의 내용을 바탕으로 재사용 가능한 이미지와 라이선스 정보를 찾는 중…';
-      const sectionText = content.sections.slice(0, 3).map(s => typeof s === 'string' ? s : `${s.heading} ${s.body || ''}`).join(' ');
-      const query = [content.title, content.subtitle, sectionText || content.desc.slice(0, 220)].filter(Boolean).join(' ').slice(0, 420);
-      try {
-        const found = (await searchCommonsImages(query, 5 - content.images.length)).filter(item => item.src);
-        for (const item of found) {
-          content.images.push(item.src); content.imageCredits.push(item);
-        }
-        content.image = content.images[0] || null;
-        status.textContent = found.length
-          ? `${found.length}장의 공개 라이선스 이미지를 넣었습니다. 출처와 라이선스는 마지막 장에 표시됩니다.`
-          : '조건에 맞는 공개 이미지를 찾지 못해 템플릿의 기본 배경을 사용합니다. 사진을 직접 올리면 주제에 맞는 결과를 만들 수 있습니다.';
-      } catch (err) {
-        status.textContent = '이미지 검색에 연결하지 못해 템플릿 기본 배경으로 생성합니다. 사진을 직접 올리면 함께 배치됩니다.';
-      }
-    }
+    // 삽화는 생성 중 Codex(image_gen)가 디자인가이드 화풍대로 직접 그려 넣는다 (로컬 서버)
     // ---- 1차: Claude AI가 디자인가이드 전문 + 원고 전체로 결과물 생성 ----
     state.aiGenerated = false;
     try {
@@ -890,9 +874,13 @@ document.getElementById('btnGenerate').addEventListener('click', async () => {
         const credit = content.imageCredits[i];
         return credit ? `${credit.title || '사진'} (출처: ${credit.author || ''} ${credit.license || ''})`.trim() : `사용자 업로드 사진 ${i + 1}`;
       });
-      status.textContent = '🎨 Claude AI가 디자인가이드대로 결과물을 제작하는 중… (보통 1~5분, 창을 닫지 마세요)';
+      status.textContent = state.part === 'ppt'
+        ? '🎨 설계→슬라이드 구현→Codex 삽화 생성 순으로 제작 중… (고품질 PPT는 10~20분, 창을 닫지 마세요)'
+        : '🎨 Claude AI가 디자인가이드대로 제작 중… 삽화는 Codex가 그립니다 (3~10분, 창을 닫지 마세요)';
       const { html } = await callAI({ mode: 'compose', part: state.part, guideMd, content: contentText, imageList },
-        t => { status.textContent = `🎨 Claude AI가 디자인가이드대로 결과물을 제작하는 중… ${t} (보통 1~5분, 멈춘 게 아닙니다)`; });
+        t => { status.textContent = state.part === 'ppt'
+          ? `🎨 설계→구현→Codex 삽화 제작 중… ${t} (고품질 PPT 10~20분, 멈춘 게 아닙니다)`
+          : `🎨 제작 중… ${t} (삽화 포함 3~10분, 멈춘 게 아닙니다)`; });
       // {{IMAGE_n}} 플레이스홀더를 실제 이미지로 치환
       let finalHtml = html;
       content.images.forEach((src, i) => { finalHtml = finalHtml.split(`{{IMAGE_${i + 1}}}`).join(src); });
@@ -992,7 +980,7 @@ document.getElementById('btnRestart').addEventListener('click', () => {
   state.images = []; state.imageCredits = []; state.sourceSections = []; state.textNotes = [];
   ['cTitle','cSubtitle','cDate','cPlace','cDesc','cHost','cCta','cLinks'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.getElementById('cFiles').value = '';
-  document.getElementById('imageStatus').textContent = '이미지가 없으면 주제에 맞는 공개 라이선스 이미지를 찾아 자동으로 배치하고 슬라이드에 출처를 표시합니다.';
+  document.getElementById('imageStatus').textContent = '삽화·사진은 생성 중 Codex AI가 디자인가이드 화풍대로 직접 그려 넣습니다.';
   renderFileList();
   goStep(1);
 });
