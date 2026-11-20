@@ -183,6 +183,31 @@ function openSource(design) {
   }
 }
 
+/* 디자인의 원본 이미지(스크린샷/PPT 캡처/링크 미리보기)를 base64로 가져온다 */
+function getDesignReferenceImage(design) {
+  return new Promise(resolve => {
+    const toBlock = dataUrl => {
+      const m = String(dataUrl).match(/^data:(image\/(?:jpeg|png|webp));base64,(.+)$/);
+      resolve(m ? { media_type: m[1], data: m[2] } : null);
+    };
+    if (design.hasPreview) {
+      idbGet('preview-' + design.id, data => {
+        if (!data) return resolve(null);
+        if (typeof data === 'string') return toBlock(data);
+        const fr = new FileReader();
+        fr.onload = () => toBlock(fr.result);
+        fr.onerror = () => resolve(null);
+        fr.readAsDataURL(data);
+      });
+    } else if (design.previewUrl) {
+      // 원격 원본은 서버가 받아오게 URL만 넘긴다
+      resolve({ url: design.previewUrl });
+    } else {
+      resolve(null);
+    }
+  });
+}
+
 function selectDesign(design) {
   state.design = design;
   document.getElementById('chosenDesignName').textContent =
@@ -877,7 +902,9 @@ document.getElementById('btnGenerate').addEventListener('click', async () => {
       status.textContent = state.part === 'ppt'
         ? '🎨 설계→슬라이드 구현→Codex 삽화 생성 순으로 제작 중… (고품질 PPT는 10~20분, 창을 닫지 마세요)'
         : '🎨 Claude AI가 디자인가이드대로 제작 중… 삽화는 Codex가 그립니다 (3~10분, 창을 닫지 마세요)';
-      const { html } = await callAI({ mode: 'compose', part: state.part, guideMd, content: contentText, imageList },
+      // 원본 디자인 이미지를 함께 보내 Claude가 "눈으로 보고" 재현하게 한다 (포스터에 특히 중요)
+      const refImage = await getDesignReferenceImage(state.design);
+      const { html } = await callAI({ mode: 'compose', part: state.part, guideMd, content: contentText, imageList, refImage },
         t => { status.textContent = state.part === 'ppt'
           ? `🎨 설계→구현→Codex 삽화 제작 중… ${t} (고품질 PPT 10~20분, 멈춘 게 아닙니다)`
           : `🎨 제작 중… ${t} (삽화 포함 3~10분, 멈춘 게 아닙니다)`; });

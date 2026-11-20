@@ -22,7 +22,11 @@ const MIME = {
 };
 
 /* Claude CLI 실행: 프롬프트는 stdin, 결과는 stdout 텍스트 */
-function runClaude(systemPrompt, userPrompt, { allowRead = false, model = 'sonnet' } = {}) {
+function runClaude(systemPrompt, userPrompt, { allowRead = false, model = 'sonnet', refFiles = [] } = {}) {
+  if (refFiles.length) {
+    allowRead = true;
+    userPrompt = `먼저 Read 도구로 아래 원본 디자인 이미지를 열어 눈으로 확인해라. 이 원본의 구도·여백 리듬·장식 위치·요소 비율을 그대로 재현하고 내용(글자·사진)만 교체하는 것이 목표다:\n${refFiles.join('\n')}\n\n` + userPrompt;
+  }
   return new Promise((resolve, reject) => {
     const args = ['-p', '--output-format', 'text', '--model', model,
       '--max-turns', '12', '--append-system-prompt', systemPrompt];
@@ -64,6 +68,30 @@ async function fetchPageHtml(url) {
   } catch {}
   const page = await fetch(url, { headers: { 'user-agent': 'Mozilla/5.0 (design-guide-analyzer)' } });
   return page.text();
+}
+
+/* 참조 원본 이미지 준비: base64 또는 원격 URL → 임시 파일 경로 */
+async function prepareRefFiles(refImage) {
+  if (!refImage) return [];
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'designai-ref-'));
+  try {
+    let buf, ext = 'png';
+    if (refImage.data) {
+      buf = Buffer.from(refImage.data, 'base64');
+      ext = refImage.media_type === 'image/jpeg' ? 'jpg' : refImage.media_type === 'image/webp' ? 'webp' : 'png';
+    } else if (refImage.url) {
+      const r = await fetch(refImage.url, { headers: { 'user-agent': 'Mozilla/5.0' } });
+      if (!r.ok) return [];
+      const mt = (r.headers.get('content-type') || '').split(';')[0];
+      if (!/^image\/(jpeg|png|webp)$/.test(mt)) return [];
+      buf = Buffer.from(await r.arrayBuffer());
+      ext = mt === 'image/jpeg' ? 'jpg' : mt === 'image/webp' ? 'webp' : 'png';
+    } else return [];
+    if (!buf || buf.length < 5000) return [];
+    const f = path.join(dir, 'reference.' + ext);
+    fs.writeFileSync(f, buf);
+    return [f];
+  } catch { return []; }
 }
 
 /* base64 이미지들을 임시 파일로 저장하고 경로 반환 */
@@ -139,7 +167,7 @@ function parseJsonLoose(text) {
   return JSON.parse(t.slice(a, b + 1));
 }
 
-async function composePptPipeline({ guideMd, content }) {
+async function composePptPipeline({ guideMd, content, refFiles = [] }) {
   // 1) 설계
   console.log('  [1/4] 덱 설계 중…');
   const planRaw = await runClaude(pptPlanSystem(),
@@ -166,7 +194,7 @@ async function composePptPipeline({ guideMd, content }) {
   console.log('  [3/4] 디자인 시스템 CSS 구축 중…');
   const styleOut = await runClaude(pptStyleSystem(),
     `[디자인가이드]\n${String(guideMd).slice(0, 30000)}\n\n[덱 정보]\n${JSON.stringify(plan.deck || {})}\n총 ${slides.length}장, 마스터 구성: ${[...new Set(slides.map(x => x.master))].join(', ')}`,
-    { model: 'sonnet' });
+    { model: 'sonnet', refFiles });
 
   // 4) 배치 구현 (6장씩, 병렬 3)
   const batches = [];
@@ -224,17 +252,19 @@ async function handleAi(body) {
   }
 
   if (mode === 'compose') {
-    const { guideMd, content, imageList } = body;
+    const { guideMd, content, imageList, refImage } = body;
     if (!guideMd || !content) throw new Error('가이드와 원고가 필요합니다.');
+    const refFiles = await prepareRefFiles(refImage);
+    if (refFiles.length) console.log('  원본 디자인 이미지를 참조해 재현합니다');
     if (part === 'ppt') {
       // 고품질 파이프라인: 설계 → 스타일 → 배치 병렬 구현 → Codex 삽화
       try {
-        return await composePptPipeline({ guideMd, content });
+        return await composePptPipeline({ guideMd, content, refFiles });
       } catch (e) {
         console.log('  파이프라인 실패(' + e.message + ') — 단일 패스로 대체');
       }
     }
-    let html = cleanHtml(await runClaude(composeSystem(part), composeUser(guideMd, content, imageList)));
+    let html = cleanHtml(await runClaude(composeSystem(part), composeUser(guideMd, content, imageList), { refFiles }));
     html = await applyGenImages(html);
     return { html };
   }
